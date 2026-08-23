@@ -56,7 +56,7 @@ class ExampleRobolectricTest {
             }
         }
         composeTestRule.onNodeWithTag("screen_compass").assertIsDisplayed()
-        composeTestRule.onNodeWithTag("card_compass_experimental").assertIsDisplayed()
+        composeTestRule.onNodeWithTag("card_compass_permission").assertIsDisplayed()
     }
 
     @Test

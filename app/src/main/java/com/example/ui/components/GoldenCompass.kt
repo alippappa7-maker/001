@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -46,7 +47,9 @@ fun GoldenCompass(
     modifier: Modifier = Modifier,
     compassSize: Dp = QabasDimens.CompassSizeDefault,
     showAuraGlow: Boolean = true,
-    showOrbitalRing: Boolean = true
+    showOrbitalRing: Boolean = true,
+    userRotation: Float = 0f,
+    qiblaAngle: Float? = null
 ) {
     val colors = QabasThemeTokens.colors
     val interactionSource = remember { MutableInteractionSource() }
@@ -56,6 +59,13 @@ fun GoldenCompass(
         targetValue = if (isPressed && onClick != null) 0.95f else 1f,
         animationSpec = spring(dampingRatio = 0.7f, stiffness = 400f),
         label = "compassScale"
+    )
+
+    // Smooth rotation animation for the compass background
+    val animatedRotation by animateFloatAsState(
+        targetValue = -userRotation,
+        animationSpec = spring(dampingRatio = 0.8f, stiffness = 300f),
+        label = "compassRotation"
     )
 
     Box(
@@ -106,6 +116,23 @@ fun GoldenCompass(
                 center = center,
                 style = Stroke(width = 1.5.dp.toPx())
             )
+            
+            // Qibla Arrow
+            if (qiblaAngle != null) {
+                val qiblaRelativeAngle = qiblaAngle - userRotation
+                val angleRad = Math.toRadians((qiblaRelativeAngle - 90).toDouble())
+                
+                // Draw Qibla pointer on the orbital ring
+                val pointerRadius = compassRadiusPx * 1.25f
+                val pointerX = center.x + (pointerRadius * kotlin.math.cos(angleRad)).toFloat()
+                val pointerY = center.y + (pointerRadius * kotlin.math.sin(angleRad)).toFloat()
+                
+                drawCircle(
+                    color = colors.gold,
+                    radius = 6.dp.toPx(),
+                    center = Offset(pointerX, pointerY)
+                )
+            }
         }
 
         // Compass Center Container
@@ -144,7 +171,9 @@ fun GoldenCompass(
                 painter = painterResource(id = R.drawable.qabas_compass_v2_1787516547189),
                 contentDescription = stringResource(id = R.string.compass_title),
                 contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier
+                    .fillMaxSize()
+                    .rotate(animatedRotation)
             )
         }
     }

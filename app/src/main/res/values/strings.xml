@@ -10,13 +10,17 @@
     <!-- Compass Screen -->
     <string name="compass_title">Compass</string>
     <string name="compass_subtitle">Center of direction and balance</string>
-    <string name="compass_experimental">The real Qibla direction will be calibrated in a later phase</string>
-    <string name="compass_sensors_status_title">Sensors &amp; Location Status</string>
-    <string name="compass_sensors_status_desc">Location and orientation sensors are not linked yet. The current interface is an exploratory preview for the center of balance.</string>
     <string name="compass_learn_more">Learn More</string>
-    <string name="compass_dialog_title">About Qabas Compass</string>
-    <string name="compass_dialog_desc">Qabas Compass aims to be your spiritual and navigational companion for Qibla, prayer times, and mindful stations. Precise navigational alignment will be integrated in an upcoming update.</string>
-    <string name="compass_dialog_close">Got it</string>
+    <string name="compass_learn_more_desc">The Qibla compass calculates the shortest distance to the Kaaba in Mecca. Please keep your device flat and away from magnetic fields for accurate results.</string>
+    <string name="permission_location_title">Location Permission Required</string>
+    <string name="permission_location_desc">Qabas needs your location to accurately calculate the direction of the Qibla.</string>
+    <string name="permission_grant">Grant Permission</string>
+    <string name="location_denied_msg">Location access is denied. We cannot calculate Qibla direction.</string>
+    <string name="enter_city_manually">Simulate Location (Riyadh)</string>
+    <string name="qibla_angle">Qibla Angle</string>
+    <string name="compass_calibrating">Calibrating sensor...</string>
+    <string name="compass_magnetic_warning">Keep away from magnets and metal objects for accuracy.</string>
+    <string name="cancel">Cancel</string>
 
     <!-- Mihrab Screen -->
     <string name="feature_mihrab_title">Mihrab</string>
@@ -36,6 +40,12 @@
     <string name="mihrab_qibla_title">Qibla Direction</string>
     <string name="mihrab_qibla_status">Makkah Al-Mukarramah • Demo Angle for Preview</string>
     <string name="demo_data_badge">Preview Sample Data</string>
+    <string name="search_azkar">Search Azkar...</string>
+    <string name="favorites">Favorites</string>
+    <string name="daily_progress">Daily Progress</string>
+    <string name="no_azkar_found">No Azkar found</string>
+    <string name="complete_task">Complete Task</string>
+    <string name="tasks_completed">Tasks completed</string>
 
     <!-- Studio Screen -->
     <string name="feature_studio_title">Studio</string>

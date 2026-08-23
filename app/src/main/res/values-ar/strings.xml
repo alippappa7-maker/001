@@ -10,13 +10,17 @@
     <!-- Compass Screen -->
     <string name="compass_title">البوصلة</string>
     <string name="compass_subtitle">مركز التوجه والاتزان</string>
-    <string name="compass_experimental">سيتم تفعيل اتجاه القبلة الحقيقي في مرحلة لاحقة</string>
-    <string name="compass_sensors_status_title">حالة الحساسات والموقع</string>
-    <string name="compass_sensors_status_desc">الموقع وحساس الاتجاه غير مربوطين بعد. الواجهة الحالية استعراضية تمهيدية لمركز الاتزان.</string>
     <string name="compass_learn_more">معرفة المزيد</string>
-    <string name="compass_dialog_title">عن بوصلة قبس</string>
-    <string name="compass_dialog_desc">تهدف بوصلة قبس لتكون المرجع الروحي والتوجيهي اليومي للقبلة ومواقيت الصلاة ومحطات التأمل. سيتم دمج نظام الملاحة الدقيق في التحديث القادم.</string>
-    <string name="compass_dialog_close">حسناً</string>
+    <string name="compass_learn_more_desc">تحسب بوصلة القبلة أقصر مسافة إلى الكعبة المشرفة في مكة. يرجى إبقاء جهازك مسطحاً وبعيداً عن المجالات المغناطيسية لنتائج دقيقة.</string>
+    <string name="permission_location_title">صلاحية الموقع مطلوبة</string>
+    <string name="permission_location_desc">يحتاج قبس إلى موقعك ليتمكن من حساب اتجاه القبلة بدقة.</string>
+    <string name="permission_grant">منح الصلاحية</string>
+    <string name="location_denied_msg">تم رفض الوصول إلى الموقع. لا يمكننا حساب اتجاه القبلة.</string>
+    <string name="enter_city_manually">محاكاة الموقع (الرياض)</string>
+    <string name="qibla_angle">زاوية القبلة</string>
+    <string name="compass_calibrating">جاري معايرة الحساس...</string>
+    <string name="compass_magnetic_warning">ابتعد عن المعادن والمجالات المغناطيسية للحصول على قراءة دقيقة.</string>
+    <string name="cancel">إلغاء</string>
 
     <!-- Mihrab Screen -->
     <string name="feature_mihrab_title">المحراب</string>
@@ -36,6 +40,12 @@
     <string name="mihrab_qibla_title">اتجاه القبلة</string>
     <string name="mihrab_qibla_status">مكة المكرمة • زاوية تجريبية للعرض</string>
     <string name="demo_data_badge">بيانات تجريبية للعرض</string>
+    <string name="search_azkar">البحث في الأذكار...</string>
+    <string name="favorites">المفضلة</string>
+    <string name="daily_progress">التقدم اليومي</string>
+    <string name="no_azkar_found">لم يتم العثور على أذكار</string>
+    <string name="complete_task">إنجاز المهمة</string>
+    <string name="tasks_completed">المهام المنجزة</string>
 
     <!-- Studio Screen -->
     <string name="feature_studio_title">الاستوديو</string>

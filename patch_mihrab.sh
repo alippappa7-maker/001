@@ -1,0 +1,2 @@
+#!/bin/bash
+sed -i 's/prayerTimes = uiState.prayerTimes/prayerTimes = uiState.dailyPrayerTimes?.toList() ?: emptyList(), nextPrayerName = uiState.nextPrayerName, nextPrayerCountdown = uiState.nextPrayerCountdown, isStale = uiState.dailyPrayerTimes?.isStale == true, isFetching = uiState.isFetchingPrayers, onRefresh = { viewModel.refreshPrayerTimes() }/g' app/src/main/java/com/example/ui/screens/MihrabScreen.kt

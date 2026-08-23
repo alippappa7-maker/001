@@ -1,0 +1,6 @@
+{
+  "name": "قبس QABAS",
+  "description": "منصة موبايل إسلامية تساعد المسلم على تقليل التشتت وتنظيم رحلته اليومية",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

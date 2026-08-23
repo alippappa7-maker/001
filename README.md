@@ -1,11 +1,83 @@
-<div align="center">
+# قبس | QABAS
 
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+**قبس (QABAS)** هو تطبيق Android أصلي (Native) ديني معرفي يساعد المسلم على تقليل التشتت وتنظيم رحلته اليومية، مستوحى من هوية بصرية روحانية مستقبلية (بوصلة ذهبية مركزية، مدارات متناسقة، وتوهج كوني هادئ).
 
-  <h1>Built with AI Studio</h2>
+---
 
-  <p>The fastest path from prompt to production with Gemini.</p>
+## 🛠 التقنيات المستخدمة (Tech Stack)
 
-  <a href="https://aistudio.google.com/apps">Start building</a>
+- **لغة البرمجة:** Kotlin (2.2.10)
+- **واجهة المستخدم:** Jetpack Compose & Material 3
+- **نظام البناء:** Gradle (9.3.1) مع Android Gradle Plugin (9.1.1) و Kotlin DSL
+- **إدارة الحزم:** Gradle Version Catalog (`libs.versions.toml`)
+- **حفظ الإعدادات محليًا:** Jetpack DataStore Preferences
+- **الاختبارات:** Robolectric & Roborazzi
+- **الهدف المستهدف:** Android 16 (API 36) مع دعم حتى Android 7.0 (API 24)
 
-</div>
+---
+
+## 📱 المميزات والواجهات الحالية (v1.0)
+
+1. **شاشة الترحيب (Welcome Screen):** مدخل بصري غامر مع خيارات البدء والتخطي.
+2. **الصفحة الرئيسية (Home Screen):** البوصلة الذهبية المركزية الثابتة مع مدارات الأقسام الخمسة (المحراب، الاستوديو، طلب العلم، الأثر، الرفيق) التي تدور بتزامن وحركة ناعمة، بالإضافة لبطاقات سريعة للمواقيت والذكر والرحلة اليومية.
+3. **الصفحات الفرعية:**
+   - **المحراب:** متابعة الصلوات، الأذكار، وسجل العبادات اليومي.
+   - **البوصلة:** توجيه القبلة الدقيق والحسابات الفلكية.
+   - **رحلتي:** مسار الإنجاز اليومي والمهام الروحية.
+   - **الاستوديو:** منصة الإنتاج الإيماني والبطاقات الدعوية.
+   - **طلب العلم:** مسارات التعلّم والفقه الميسر.
+   - **الأثر:** متابعة المبادرات والمشاريع الخيرية.
+   - **الرفيق الذكي:** واجهة مساعدة تفاعلية (واجهة تجريبية غير متصلة بسحابة).
+   - **الملف الشخصي والإعدادات:** إدارة تفضيلات المظهر (داكن/فاتح) واللغة (عربي/إنجليزي).
+
+> **ملاحظة:** التطبيق يعمل محليًا بالكامل دون الحاجة إلى إنترنت، ولا يتطلب أي مفاتيح API أو تسجيل دخول أو خدمات Firebase/Gemini في هذه النسخة.
+
+---
+
+## 🚀 التشغيل والبناء محليًا (Local Build)
+
+### المتطلبات:
+- **JDK:** Java 17 أو أحدث (يوصى بـ Eclipse Temurin 17).
+- **Android SDK:** متوافق مع API 36.
+
+### أوامر البناء الأساسية:
+```bash
+# تنظيف مجلدات البناء
+./gradlew clean
+
+# تشغيل اختبارات الوحدة (Unit Tests)
+./gradlew test
+
+# فحص جودة الكود والتحقق من الأخطاء (Lint)
+./gradlew lint
+
+# بناء نسخة التطبيق التجريبية (Debug APK)
+./gradlew assembleDebug
+```
+
+الملف الناتج يكون في المسار:
+`app/build/outputs/apk/debug/app-debug.apk`
+
+---
+
+## 🔄 التكامل المستمر عبر GitHub Actions (CI/CD)
+
+يحتوي المشروع على إعداد جاهز لـ **GitHub Actions** في المسار `.github/workflows/android-ci.yml`.
+
+### طريقة رفع المشروع إلى مستودع GitHub:
+1. قم بإنشاء مستودع جديد على GitHub (New Repository).
+2. في مجلد المشروع المحلي:
+   ```bash
+   git init
+   git add .
+   git commit -m "Initial commit - QABAS Android App v1.0"
+   git branch -M main
+   git remote add origin <رابط_مستودع_GitHub>
+   git push -u origin main
+   ```
+3. سيبدأ الـ Workflow تلقائيًا عند كل `push` أو `pull_request` إلى الفرعين `main` و `master`.
+
+### تحميل ملف الـ APK من GitHub:
+1. توجّه إلى تبويب **Actions** في مستودع GitHub.
+2. اختر آخر عملية بناء ناجحة (Workflow run).
+3. في قسم **Artifacts** في أسفل الصفحة، ستجد ملف `qabas-debug-apk` جاهزًا للتحميل المباشر بصيغة ZIP وتثبيته على أي هاتف Android.

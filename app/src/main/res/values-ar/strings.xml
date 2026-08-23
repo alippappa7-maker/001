@@ -1,0 +1,148 @@
+<resources>
+    <string name="app_name">قبس</string>
+    <string name="welcome_title">رحلتك نحو السكينة تبدأ من هنا</string>
+    <string name="start_now">ابدأ الآن</string>
+    <string name="skip">تخطي</string>
+    <string name="home_greeting_title">أهلًا بك في قبس</string>
+    <string name="home_greeting_subtitle">خطوة صغيرة اليوم تصنع أثرًا كبيرًا</string>
+    <string name="notifications_later">ستتوفر الإشعارات في تحديث قادم</string>
+    
+    <!-- Compass Screen -->
+    <string name="compass_title">البوصلة</string>
+    <string name="compass_subtitle">مركز التوجه والاتزان</string>
+    <string name="compass_experimental">سيتم تفعيل اتجاه القبلة الحقيقي في مرحلة لاحقة</string>
+    <string name="compass_sensors_status_title">حالة الحساسات والموقع</string>
+    <string name="compass_sensors_status_desc">الموقع وحساس الاتجاه غير مربوطين بعد. الواجهة الحالية استعراضية تمهيدية لمركز الاتزان.</string>
+    <string name="compass_learn_more">معرفة المزيد</string>
+    <string name="compass_dialog_title">عن بوصلة قبس</string>
+    <string name="compass_dialog_desc">تهدف بوصلة قبس لتكون المرجع الروحي والتوجيهي اليومي للقبلة ومواقيت الصلاة ومحطات التأمل. سيتم دمج نظام الملاحة الدقيق في التحديث القادم.</string>
+    <string name="compass_dialog_close">حسناً</string>
+
+    <!-- Mihrab Screen -->
+    <string name="feature_mihrab_title">المحراب</string>
+    <string name="feature_mihrab_desc">مساحة للذكر والقرآن</string>
+    <string name="mihrab_quran_title">القرآن الكريم</string>
+    <string name="mihrab_quran_desc">تلاوة وتدبر لآيات الكتاب الحكيم</string>
+    <string name="mihrab_quran_sample_verse">﴿ أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ ﴾</string>
+    <string name="mihrab_quran_sample_source">سورة الرعد - آية 28</string>
+    <string name="mihrab_dhikr_title">أذكار اليوم</string>
+    <string name="mihrab_dhikr_sample">سُبْحَانَ اللَّهِ وَبِحَمْدِهِ ، سُبْحَانَ اللَّهِ الْعَظِيمِ</string>
+    <string name="mihrab_prayer_times_title">مواقيت الصلاة</string>
+    <string name="mihrab_fajr">الفجر ٠٤:٥٠ ص</string>
+    <string name="mihrab_dhuhr">الظهر ١٢:١٥ م</string>
+    <string name="mihrab_asr">العصر ٠٣:٤٠ م</string>
+    <string name="mihrab_maghrib">المغرب ٠٦:١٠ م</string>
+    <string name="mihrab_isha">العشاء ٠٧:٤٠ م</string>
+    <string name="mihrab_qibla_title">اتجاه القبلة</string>
+    <string name="mihrab_qibla_status">مكة المكرمة • زاوية تجريبية للعرض</string>
+    <string name="demo_data_badge">بيانات تجريبية للعرض</string>
+
+    <!-- Studio Screen -->
+    <string name="feature_studio_title">الاستوديو</string>
+    <string name="feature_studio_desc">مساحة للإبداع والتأمل</string>
+    <string name="studio_intro_banner">واجهة تمهيدية — ستضاف الأدوات لاحقًا</string>
+    <string name="studio_card_design_title">التصميم المرئي</string>
+    <string name="studio_card_design_desc">مساحة لتصميم بطاقات الأثر والاقتباسات الروحانية المنظمة</string>
+    <string name="studio_card_sound_title">الصوتيات والسكينة</string>
+    <string name="studio_card_sound_desc">مكتبة تلاوات وأصوات طبيعية هادئة لتعزيز التركيز والخشوع</string>
+    <string name="studio_card_meditation_title">التأمل والتدبر</string>
+    <string name="studio_card_meditation_desc">جلسات تدبر معرفية موجهة ومحطات هدوء يومية</string>
+    <string name="studio_card_notes_title">ملاحظات وخواطر</string>
+    <string name="studio_card_notes_desc">تدوين الأفكار والمشاعر والفوائد العلمية في مساحة خاصة</string>
+    <string name="tool_coming_soon">قريبًا</string>
+
+    <!-- Knowledge Screen -->
+    <string name="feature_knowledge_title">طلب العلم</string>
+    <string name="feature_knowledge_desc">معرفة تهدي وتبني</string>
+    <string name="knowledge_search_hint">ابحث في الدروس والمقالات...</string>
+    <string name="knowledge_search_inactive_msg">البحث البصري قيد التطوير وسيتوفر قريبًا</string>
+    <string name="knowledge_cat_all">الكل</string>
+    <string name="knowledge_cat_tafsir">التفسير والتدبر</string>
+    <string name="knowledge_cat_heart">أعمال القلوب</string>
+    <string name="knowledge_cat_ethics">الأخلاق والمعاملات</string>
+    <string name="knowledge_cat_history">السيرة النبوية</string>
+    <string name="knowledge_lesson1_title">مدخل إلى تدبر القرآن الكريم</string>
+    <string name="knowledge_lesson1_desc">كيف نفتح قلوبنا للآيات ونستحضر المعاني في واقعنا اليومي</string>
+    <string name="knowledge_lesson1_time">٨ دقائق قراءة</string>
+    <string name="knowledge_lesson2_title">السكينة والطمأنينة في زمن التشتت</string>
+    <string name="knowledge_lesson2_desc">خطوات عملية لبناء الهدوء الروحي وتقليل الضوضاء الرقمية</string>
+    <string name="knowledge_lesson2_time">١٢ دقيقة قراءة</string>
+    <string name="knowledge_lesson3_title">أثر الصدقة الخفية في تزكية النفس</string>
+    <string name="knowledge_lesson3_desc">معالم في الإخلاص وبناء الأثر الدائم النافع</string>
+    <string name="knowledge_lesson3_time">٦ دقائق قراءة</string>
+
+    <!-- Impact Screen -->
+    <string name="feature_impact_title">الأثر</string>
+    <string name="feature_impact_desc">ما تتركه من عمل نافع</string>
+    <string name="impact_intro_title">مفهوم الأثر في قبس</string>
+    <string name="impact_intro_desc">الأثر ليس مجرد رقم، بل بصمة خير وعلم نافع وكلمة طيبة وسنة حسنة تتركها في محيطك ومجتمعك.</string>
+    <string name="impact_pillar1_title">العلم النافع</string>
+    <string name="impact_pillar1_desc">مشاركة المعرفة الهادفة وتوجيه القلوب للخير والسكينة</string>
+    <string name="impact_pillar2_title">الكلمة الطيبة والمساندة</string>
+    <string name="impact_pillar2_desc">بناء مجتمع متكافل يعزز المحبة والتراحم والتناصح بالحق</string>
+    <string name="impact_pillar3_title">الاستدامة والصدقة الجارية</string>
+    <string name="impact_pillar3_desc">غرس المبادرات ذات النفع المستمر للأجيال القادمة</string>
+    <string name="impact_badge_no_payment">مساحة معرفية وتوعوية • لا تتضمن عمليات دفع أو تبرعات</string>
+
+    <!-- Journey Screen -->
+    <string name="card_journey_title">رحلتك اليوم</string>
+    <string name="journey_subtitle">سجل إنجازاتك اليومية في مسار السكينة</string>
+    <string name="journey_item_dhikr_title">ورد الأذكار اليومي</string>
+    <string name="journey_item_dhikr_desc">أذكار الصباح والمساء والاستغفار</string>
+    <string name="journey_item_quran_title">ورد القراءة والتدبر</string>
+    <string name="journey_item_quran_desc">قراءة حزب يومي مع تدبر آية</string>
+    <string name="journey_item_prayer_title">الصلوات الخمس والسنن</string>
+    <string name="journey_item_prayer_desc">أداء الصلاة في وقتها بحضور وخشوع</string>
+    <string name="journey_completed_today">مكتمل اليوم</string>
+    <string name="journey_streak_days">الأيام المتتالية</string>
+    <string name="journey_streak_count">7 أيام</string>
+    <string name="journey_completed_steps">الخطوات المنجزة</string>
+    <string name="journey_steps_count">5 / 7</string>
+    <string name="journey_demo_notice">ملاحظة: البيانات المعروضة تجريبية في هذه المرحلة لأغراض الاستعراض</string>
+
+    <!-- Profile Screen -->
+    <string name="profile_guest_name">ضيف قبس</string>
+    <string name="profile_guest_bio">مستكشف في رحلة السكينة</string>
+    <string name="profile_stat_journeys">الرحلات</string>
+    <string name="profile_stat_journeys_val">12</string>
+    <string name="profile_stat_impact">الأثر</string>
+    <string name="profile_stat_impact_val">85+</string>
+    <string name="profile_stat_level">المستوى</string>
+    <string name="profile_stat_level_val">مستمر</string>
+    <string name="profile_login_btn">تسجيل الدخول / إنشاء حساب</string>
+    <string name="profile_login_notice">ستتم إضافة نظام الحسابات والمزامنة لاحقًا</string>
+    <string name="profile_quick_settings_title">الإعدادات السريعة</string>
+
+    <!-- Companion Screen -->
+    <string name="feature_companion_title">الرفيق الذكي</string>
+    <string name="feature_companion_desc">مساعدك في رحلة التعلم</string>
+    <string name="feature_companion_later">الرفيق الذكي قادم في المرحلة التالية</string>
+
+    <!-- Bottom Navigation -->
+    <string name="bottom_nav_home">الرئيسية</string>
+    <string name="bottom_nav_mihrab">المحراب</string>
+    <string name="bottom_nav_compass">البوصلة</string>
+    <string name="bottom_nav_journey">رحلتي</string>
+    <string name="bottom_nav_profile">الملف الشخصي</string>
+    
+    <string name="card_compass_status">جاهزة للمعايرة لاحقًا</string>
+    <string name="card_dhikr_title">ذكر اليوم</string>
+    <string name="card_dhikr_content">سبحان الله وبحمده ، سبحان الله العظيم</string>
+    
+    <!-- Settings -->
+    <string name="settings_title">الإعدادات</string>
+    <string name="settings_language">اللغة</string>
+    <string name="settings_language_desc">اختر لغة واجهة التطبيق</string>
+    <string name="settings_theme">المظهر</string>
+    <string name="settings_theme_light">الوضع الفاتح</string>
+    <string name="settings_theme_dark">الوضع الداكن</string>
+    <string name="settings_theme_dark_desc">الوضع الداكن المهدئ للبصر والمريح ليلاً</string>
+    <string name="settings_theme_light_desc">الوضع الفاتح المشرق والسكين</string>
+    
+    <!-- General -->
+    <string name="btn_back">رجوع</string>
+    <string name="btn_return_home">العودة للرئيسية</string>
+    <string name="notifications_title">الإشعارات</string>
+    <string name="profile_settings_title">الإعدادات</string>
+    <string name="avatar_description">الصورة الشخصية</string>
+</resources>

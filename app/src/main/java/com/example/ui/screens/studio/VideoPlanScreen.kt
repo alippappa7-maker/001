@@ -150,7 +150,7 @@ fun VideoPlanScreen(
                         text = stringResource(R.string.studio_btn_start_creation),
                         onClick = {
                             viewModel.startGeneratingVideo()
-                            showGenerationNoticeDialog = true
+                            navController.navigate(Routes.STUDIO_STATUS)
                         },
                         variant = QabasButtonVariant.PrimaryGold,
                         modifier = Modifier
@@ -158,17 +158,30 @@ fun VideoPlanScreen(
                             .testTag("btn_start_creation")
                     )
 
-                    QabasButton(
-                        text = stringResource(R.string.studio_btn_save_project),
-                        onClick = {
-                            viewModel.saveCurrentProject()
-                        },
-                        variant = QabasButtonVariant.OutlineGold,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .testTag("btn_save_project")
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(QabasDimens.Space8)
+                    ) {
+                        QabasButton(
+                            text = "المحرر والموارد",
+                            onClick = { navController.navigate(Routes.STUDIO_EDITOR) },
+                            variant = QabasButtonVariant.OutlineGold,
+                            modifier = Modifier
+                                .weight(1f)
+                                .testTag("btn_open_editor")
+                        )
+
+                        QabasButton(
+                            text = stringResource(R.string.studio_btn_save_project),
+                            onClick = { viewModel.saveCurrentProject() },
+                            variant = QabasButtonVariant.OutlineGold,
+                            modifier = Modifier
+                                .weight(1f)
+                                .testTag("btn_save_project")
+                        )
+                    }
                 }
+
             }
         }
     ) { padding ->

@@ -4,6 +4,9 @@ import android.app.Application
 import com.example.data.local.AppDatabase
 import com.example.data.local.studio.StudioDao
 import com.example.data.local.studio.VideoProjectEntity
+import com.example.domain.model.studio.FallbackResourceMode
+import com.example.domain.model.studio.GenerationStage
+import com.example.domain.model.studio.LicensedAsset
 import com.example.domain.model.studio.VideoAsset
 import com.example.domain.model.studio.VideoGenerationJob
 import com.example.domain.model.studio.VideoIdea
@@ -34,8 +37,12 @@ class StudioRepositoryImpl(private val application: Application) : StudioReposit
     private val planAdapter = moshi.adapter(VideoPlan::class.java)
     private val styleAdapter = moshi.adapter(VideoStyle::class.java)
     private val jobAdapter = moshi.adapter(VideoGenerationJob::class.java)
+    private val fallbackAdapter = moshi.adapter(FallbackResourceMode::class.java)
     private val assetListAdapter = moshi.adapter<List<VideoAsset>>(
         Types.newParameterizedType(List::class.java, VideoAsset::class.java)
+    )
+    private val licensedAssetListAdapter = moshi.adapter<List<LicensedAsset>>(
+        Types.newParameterizedType(List::class.java, LicensedAsset::class.java)
     )
 
     override fun getAllProjects(): Flow<List<VideoProject>> {
@@ -81,6 +88,18 @@ class StudioRepositoryImpl(private val application: Application) : StudioReposit
             emptyList()
         }
 
+        val parsedLicensedAssets = try {
+            if (this.licensedAssetsJson.isNotBlank()) licensedAssetListAdapter.fromJson(this.licensedAssetsJson) ?: emptyList() else emptyList()
+        } catch (_: Exception) {
+            emptyList()
+        }
+
+        val parsedFallbackMode = try {
+            if (this.fallbackModeJson.isNotBlank()) fallbackAdapter.fromJson(this.fallbackModeJson) ?: FallbackResourceMode() else FallbackResourceMode()
+        } catch (_: Exception) {
+            FallbackResourceMode()
+        }
+
         val parsedJob = try {
             if (this.jobJson.isNotBlank()) jobAdapter.fromJson(this.jobJson) else null
         } catch (_: Exception) {
@@ -99,17 +118,26 @@ class StudioRepositoryImpl(private val application: Application) : StudioReposit
             VideoRenderStatus.IDLE
         }
 
+        val parsedStage = try {
+            GenerationStage.valueOf(this.generationStage)
+        } catch (_: Exception) {
+            GenerationStage.IDLE
+        }
+
         return VideoProject(
             id = this.id,
             title = this.title,
             status = parsedStatus,
             renderStatus = parsedRenderStatus,
+            generationStage = parsedStage,
             createdAt = this.createdAt,
             updatedAt = this.updatedAt,
             idea = parsedIdea,
             plan = parsedPlan,
             style = parsedStyle,
             assets = parsedAssets,
+            licensedAssets = parsedLicensedAssets,
+            fallbackMode = parsedFallbackMode,
             currentJob = parsedJob,
             errorMessage = this.errorMessage
         )
@@ -121,14 +149,18 @@ class StudioRepositoryImpl(private val application: Application) : StudioReposit
             title = this.title,
             status = this.status.name,
             renderStatus = this.renderStatus.name,
+            generationStage = this.generationStage.name,
             createdAt = this.createdAt,
             updatedAt = this.updatedAt,
             ideaJson = ideaAdapter.toJson(this.idea),
             planJson = planAdapter.toJson(this.plan),
             styleJson = styleAdapter.toJson(this.style),
             assetsJson = assetListAdapter.toJson(this.assets),
+            licensedAssetsJson = licensedAssetListAdapter.toJson(this.licensedAssets),
+            fallbackModeJson = fallbackAdapter.toJson(this.fallbackMode),
             jobJson = this.currentJob?.let { jobAdapter.toJson(it) } ?: "",
             errorMessage = this.errorMessage
         )
     }
 }
+

@@ -5,8 +5,13 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.data.repository.StudioRepository
 import com.example.data.repository.StudioRepositoryImpl
+import com.example.domain.model.studio.AssetAttribution
+import com.example.domain.model.studio.AssetLicense
 import com.example.domain.model.studio.AssetType
 import com.example.domain.model.studio.EditingStyle
+import com.example.domain.model.studio.FallbackResourceMode
+import com.example.domain.model.studio.GenerationStage
+import com.example.domain.model.studio.LicensedAsset
 import com.example.domain.model.studio.VideoAsset
 import com.example.domain.model.studio.VideoDuration
 import com.example.domain.model.studio.VideoGenerationJob
@@ -20,6 +25,15 @@ import com.example.domain.model.studio.VideoScene
 import com.example.domain.model.studio.VideoStatus
 import com.example.domain.model.studio.VideoStyle
 import com.example.domain.model.studio.VideoTone
+import com.example.domain.service.studio.LocalResourceProvider
+import com.example.domain.service.studio.LocalVideoRenderService
+import com.example.domain.service.studio.MockVideoGenerationService
+import com.example.domain.service.studio.ResourceProvider
+import com.example.domain.service.studio.VideoExportResult
+import com.example.domain.service.studio.VideoGenerationService
+import com.example.domain.service.studio.VideoRenderResult
+import com.example.domain.service.studio.VideoRenderService
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -37,10 +51,23 @@ enum class StudioFilter {
 
 class StudioViewModel(
     application: Application,
-    private val repository: StudioRepository = StudioRepositoryImpl(application)
+    private val repository: StudioRepository = StudioRepositoryImpl(application),
+    generationService: VideoGenerationService? = null,
+    private val resourceProvider: ResourceProvider = LocalResourceProvider(),
+    private val renderService: VideoRenderService = LocalVideoRenderService()
 ) : AndroidViewModel(application) {
 
+    private val generationService: VideoGenerationService = generationService ?: MockVideoGenerationService(viewModelScope)
+
+
     val projects: StateFlow<List<VideoProject>> = repository.getAllProjects()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
+    val localAvailableResources: StateFlow<List<LicensedAsset>> = resourceProvider.observeLocalResources()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
@@ -56,6 +83,11 @@ class StudioViewModel(
     private val _feedbackMessage = MutableStateFlow<String?>(null)
     val feedbackMessage: StateFlow<String?> = _feedbackMessage.asStateFlow()
 
+    private val _exportNotice = MutableStateFlow<VideoExportResult?>(null)
+    val exportNotice: StateFlow<VideoExportResult?> = _exportNotice.asStateFlow()
+
+    private var activeJobObservation: Job? = null
+
     fun setFilter(filter: StudioFilter) {
         _selectedFilter.value = filter
     }
@@ -64,18 +96,25 @@ class StudioViewModel(
         _feedbackMessage.value = null
     }
 
+    fun clearExportNotice() {
+        _exportNotice.value = null
+    }
+
     fun createNewProject() {
         val newProject = VideoProject(
             id = UUID.randomUUID().toString(),
             title = "مشروع فيديو جديد",
             status = VideoStatus.DRAFT,
             renderStatus = VideoRenderStatus.IDLE,
+            generationStage = GenerationStage.IDLE,
             createdAt = System.currentTimeMillis(),
             updatedAt = System.currentTimeMillis(),
             idea = VideoIdea(),
             plan = VideoPlan(),
             style = VideoStyle(),
-            assets = emptyList()
+            assets = emptyList(),
+            licensedAssets = emptyList(),
+            fallbackMode = FallbackResourceMode()
         )
         _currentProject.value = newProject
     }
@@ -84,6 +123,11 @@ class StudioViewModel(
         viewModelScope.launch {
             val project = repository.getProjectById(id)
             _currentProject.value = project
+            project?.currentJob?.let { job ->
+                if (job.status == VideoRenderStatus.PROCESSING) {
+                    observeGenerationJob(job.jobId)
+                }
+            }
         }
     }
 
@@ -175,6 +219,7 @@ class StudioViewModel(
         val updated = project.copy(
             plan = analyzedPlan,
             status = VideoStatus.ANALYZING,
+            generationStage = GenerationStage.ANALYZING,
             updatedAt = System.currentTimeMillis()
         )
 
@@ -201,6 +246,7 @@ class StudioViewModel(
         val updatedProject = project.copy(
             plan = updatedPlan,
             status = VideoStatus.PLANNING,
+            generationStage = GenerationStage.PLANNING,
             updatedAt = System.currentTimeMillis()
         )
 
@@ -454,6 +500,7 @@ class StudioViewModel(
             val resetProject = project.copy(
                 status = VideoStatus.PLANNING,
                 renderStatus = VideoRenderStatus.IDLE,
+                generationStage = GenerationStage.PLANNING,
                 errorMessage = null,
                 updatedAt = System.currentTimeMillis()
             )
@@ -473,28 +520,240 @@ class StudioViewModel(
         }
     }
 
+    // --- Generation Lifecycle, Cancellation & Retry ---
+
     fun startGeneratingVideo() {
         val project = _currentProject.value ?: return
-        val job = VideoGenerationJob(
-            jobId = UUID.randomUUID().toString(),
-            projectId = project.id,
-            status = VideoRenderStatus.PROCESSING,
-            progressPercent = 10,
-            message = "تم حفظ المخطط محليًا. محرك توليد الفيديو الفعلي قيد التطوير وسيتم ربطه وتفعيله في تحديث قادم.",
-            createdAt = System.currentTimeMillis()
-        )
+        viewModelScope.launch {
+            val job = generationService.generateFromPlan(project.plan, project.id)
+            val updated = project.copy(
+                status = VideoStatus.GENERATING,
+                renderStatus = VideoRenderStatus.PROCESSING,
+                generationStage = job.stage,
+                currentJob = job,
+                errorMessage = null,
+                updatedAt = System.currentTimeMillis()
+            )
+            _currentProject.value = updated
+            repository.saveProject(updated)
+            observeGenerationJob(job.jobId)
+        }
+    }
 
-        val updated = project.copy(
-            status = VideoStatus.GENERATING,
-            renderStatus = VideoRenderStatus.PROCESSING,
-            currentJob = job,
-            errorMessage = "محرك التوليد الفعلي قيد التطوير وسيتم ربطه وتفعيله في تحديث قادم.",
+    private fun observeGenerationJob(jobId: String) {
+        activeJobObservation?.cancel()
+        activeJobObservation = viewModelScope.launch {
+            generationService.observeJob(jobId).collect { job ->
+                if (job == null) return@collect
+                val current = _currentProject.value ?: return@collect
+                val newStatus = when (job.status) {
+                    VideoRenderStatus.COMPLETED -> VideoStatus.COMPLETED
+                    VideoRenderStatus.FAILED -> VideoStatus.FAILED
+                    VideoRenderStatus.CANCELLED -> VideoStatus.CANCELLED
+                    else -> VideoStatus.GENERATING
+                }
+                val updated = current.copy(
+                    status = newStatus,
+                    renderStatus = job.status,
+                    generationStage = job.stage,
+                    currentJob = job,
+                    errorMessage = if (job.status == VideoRenderStatus.FAILED) job.message else null,
+                    updatedAt = System.currentTimeMillis()
+                )
+                _currentProject.value = updated
+                repository.saveProject(updated)
+            }
+        }
+    }
+
+    fun cancelActiveGeneration() {
+        val current = _currentProject.value ?: return
+        val jobId = current.currentJob?.jobId ?: return
+        viewModelScope.launch {
+            generationService.cancelGeneration(jobId)
+            val updated = current.copy(
+                status = VideoStatus.CANCELLED,
+                renderStatus = VideoRenderStatus.CANCELLED,
+                generationStage = GenerationStage.CANCELLED,
+                errorMessage = "تم إلغاء عملية التوليد بناءً على طلبك.",
+                updatedAt = System.currentTimeMillis()
+            )
+            _currentProject.value = updated
+            repository.saveProject(updated)
+            _feedbackMessage.value = "تم إلغاء عملية التوليد"
+        }
+    }
+
+    fun retryActiveGeneration() {
+        val current = _currentProject.value ?: return
+        val oldJobId = current.currentJob?.jobId ?: UUID.randomUUID().toString()
+        viewModelScope.launch {
+            val newJob = generationService.retryGeneration(oldJobId, current)
+            val updated = current.copy(
+                status = VideoStatus.GENERATING,
+                renderStatus = VideoRenderStatus.PROCESSING,
+                generationStage = newJob.stage,
+                currentJob = newJob,
+                errorMessage = null,
+                updatedAt = System.currentTimeMillis()
+            )
+            _currentProject.value = updated
+            repository.saveProject(updated)
+            observeGenerationJob(newJob.jobId)
+            _feedbackMessage.value = "بدأت إعادة محاولة التوليد (محاكاة)"
+        }
+    }
+
+    // --- Fallback Resource Mode & Asset Validation ---
+
+    fun toggleFallbackResourceMode(enabled: Boolean) {
+        val current = _currentProject.value ?: return
+        val currentFallback = current.fallbackMode
+        val updated = current.copy(
+            fallbackMode = currentFallback.copy(isEnabled = enabled),
             updatedAt = System.currentTimeMillis()
         )
-
         _currentProject.value = updated
         viewModelScope.launch {
             repository.saveProject(updated)
         }
     }
+
+    fun setFallbackConsent(given: Boolean) {
+        val current = _currentProject.value ?: return
+        val currentFallback = current.fallbackMode
+        val updated = current.copy(
+            fallbackMode = currentFallback.copy(userConfirmedConsent = given),
+            updatedAt = System.currentTimeMillis()
+        )
+        _currentProject.value = updated
+        viewModelScope.launch {
+            repository.saveProject(updated)
+        }
+    }
+
+    fun validateAndAddExternalResource(
+        title: String,
+        uriOrPath: String,
+        assetType: AssetType,
+        fileSizeBytes: Long,
+        source: String,
+        license: AssetLicense,
+        author: String = "",
+        sourceUrl: String = "",
+        isUserProvided: Boolean = true,
+        isConsentGiven: Boolean = false
+    ): Result<LicensedAsset> {
+        val attribution = AssetAttribution(
+            author = author,
+            sourceTitle = source,
+            sourceUrlOrPath = sourceUrl,
+            licenseNotice = license.titleAr,
+            requiresAttribution = license == AssetLicense.CREATIVE_COMMONS_BY
+        )
+        val candidate = LicensedAsset(
+            id = UUID.randomUUID().toString(),
+            title = title.ifBlank { "مورد محلي جديد" },
+            uriOrPath = uriOrPath,
+            assetType = assetType,
+            fileSizeBytes = fileSizeBytes,
+            source = source,
+            license = license,
+            attribution = attribution,
+            isUserProvided = isUserProvided,
+            isConsentGiven = isConsentGiven,
+            createdAt = System.currentTimeMillis()
+        )
+
+        return viewModelScope.let {
+            // Validate via resource provider rules
+            val validationResult = when {
+                !candidate.isConsentGiven -> {
+                    Result.failure(IllegalArgumentException("يلزم تأكيد موافقة وتعهد المستخدم بملكية أو ترخيص المورد قبل الإضافة."))
+                }
+                candidate.license == AssetLicense.UNKNOWN_UNLICENSED || !candidate.license.isPermitted -> {
+                    Result.failure(IllegalArgumentException("تم رفض المورد: الترخيص غير صالح أو غير مصرح به للاستخدام."))
+                }
+                !candidate.isUserProvided && candidate.source.isBlank() -> {
+                    Result.failure(IllegalArgumentException("تم رفض المورد: يجب تحديد مصدر واضح وموثق للمورد الخارجي."))
+                }
+                else -> Result.success(candidate)
+            }
+
+            if (validationResult.isSuccess) {
+                val current = _currentProject.value
+                if (current != null) {
+                    val updatedAssets = current.licensedAssets.filter { it.id != candidate.id } + candidate
+                    val updatedProject = current.copy(
+                        licensedAssets = updatedAssets,
+                        fallbackMode = current.fallbackMode.copy(isEnabled = true),
+                        updatedAt = System.currentTimeMillis()
+                    )
+                    _currentProject.value = updatedProject
+                    viewModelScope.launch {
+                        repository.saveProject(updatedProject)
+                        resourceProvider.saveUserResource(candidate)
+                    }
+                }
+            }
+            validationResult
+        }
+    }
+
+    fun attachResourceToScene(sceneId: String, asset: LicensedAsset) {
+        val current = _currentProject.value ?: return
+        val updatedScenes = current.plan.scenes.map { scene ->
+            if (scene.id == sceneId) {
+                scene.copy(
+                    attachedAssetId = asset.id,
+                    attachedAssetTitle = asset.title,
+                    attachedAssetType = asset.assetType
+                )
+            } else {
+                scene
+            }
+        }
+        val updatedProject = current.copy(
+            plan = current.plan.copy(scenes = updatedScenes),
+            updatedAt = System.currentTimeMillis()
+        )
+        _currentProject.value = updatedProject
+        viewModelScope.launch {
+            repository.saveProject(updatedProject)
+            _feedbackMessage.value = "تم إرفاق «${asset.title}» بالمشهد"
+        }
+    }
+
+    fun detachResourceFromScene(sceneId: String) {
+        val current = _currentProject.value ?: return
+        val updatedScenes = current.plan.scenes.map { scene ->
+            if (scene.id == sceneId) {
+                scene.copy(
+                    attachedAssetId = null,
+                    attachedAssetTitle = null,
+                    attachedAssetType = null
+                )
+            } else {
+                scene
+            }
+        }
+        val updatedProject = current.copy(
+            plan = current.plan.copy(scenes = updatedScenes),
+            updatedAt = System.currentTimeMillis()
+        )
+        _currentProject.value = updatedProject
+        viewModelScope.launch {
+            repository.saveProject(updatedProject)
+            _feedbackMessage.value = "تمت إزالة المورد من المشهد"
+        }
+    }
+
+    fun exportCurrentVideo() {
+        val current = _currentProject.value ?: return
+        viewModelScope.launch {
+            val result = renderService.exportVideo(current)
+            _exportNotice.value = result
+        }
+    }
 }
+

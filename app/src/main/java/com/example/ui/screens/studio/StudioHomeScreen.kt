@@ -159,7 +159,10 @@ fun StudioHomeScreen(
                                 viewModel.loadProject(project.id)
                                 when (project.status) {
                                     VideoStatus.DRAFT -> navController.navigate(Routes.STUDIO_CREATE)
-                                    VideoStatus.ANALYZING, VideoStatus.PLANNING -> navController.navigate(Routes.STUDIO_ANALYSIS)
+                                    VideoStatus.ANALYZING -> navController.navigate(Routes.STUDIO_ANALYSIS)
+                                    VideoStatus.PLANNING -> navController.navigate(Routes.STUDIO_PLAN)
+                                    VideoStatus.GENERATING -> navController.navigate(Routes.STUDIO_STATUS)
+                                    VideoStatus.COMPLETED -> navController.navigate(Routes.STUDIO_PREVIEW)
                                     else -> navController.navigate(Routes.STUDIO_PLAN)
                                 }
                             },
@@ -390,6 +393,7 @@ fun StudioProjectCard(
     val statusColor = when (project.status) {
         VideoStatus.COMPLETED -> Color(0xFF4CAF50)
         VideoStatus.FAILED -> MaterialTheme.colorScheme.error
+        VideoStatus.CANCELLED -> Color(0xFFFF9800)
         VideoStatus.GENERATING -> StudioBlue
         VideoStatus.PLANNING -> colors.gold
         VideoStatus.ANALYZING -> colors.gold
@@ -403,7 +407,9 @@ fun StudioProjectCard(
         VideoStatus.GENERATING -> stringResource(R.string.studio_status_processing)
         VideoStatus.COMPLETED -> stringResource(R.string.studio_status_completed)
         VideoStatus.FAILED -> stringResource(R.string.studio_status_failed)
+        VideoStatus.CANCELLED -> "ملغي"
     }
+
 
     Box(
         modifier = Modifier

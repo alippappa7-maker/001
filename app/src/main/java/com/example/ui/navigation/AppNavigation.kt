@@ -21,6 +21,9 @@ object Routes {
     const val STUDIO_CREATE = "studio_create"
     const val STUDIO_ANALYSIS = "studio_analysis"
     const val STUDIO_PLAN = "studio_plan"
+    const val STUDIO_STATUS = "studio_status"
+    const val STUDIO_PREVIEW = "studio_preview"
+    const val STUDIO_EDITOR = "studio_editor"
     const val COMPANION = "companion"
     const val KNOWLEDGE = "knowledge"
     const val IMPACT = "impact"
@@ -29,6 +32,7 @@ object Routes {
     const val SETTINGS = "settings"
     const val NOTIFICATIONS = "notifications"
 }
+
 
 @Composable
 fun AppNavigation(
@@ -130,6 +134,28 @@ fun AppNavigation(
                 viewModel = studioViewModel
             )
         }
+        composable(Routes.STUDIO_STATUS) {
+            GenerationStatusScreen(
+                navController = navController,
+                onBack = { navController.popBackStack() },
+                viewModel = studioViewModel
+            )
+        }
+        composable(Routes.STUDIO_PREVIEW) {
+            VideoPreviewScreen(
+                navController = navController,
+                onBack = { navController.popBackStack() },
+                viewModel = studioViewModel
+            )
+        }
+        composable(Routes.STUDIO_EDITOR) {
+            VideoEditorScreen(
+                navController = navController,
+                onBack = { navController.popBackStack() },
+                viewModel = studioViewModel
+            )
+        }
+
 
         composable(Routes.COMPANION) {
             CompanionScreen(
@@ -138,14 +164,42 @@ fun AppNavigation(
         }
 
         composable(Routes.KNOWLEDGE) {
-            KnowledgeScreen(
-                onBack = { navController.popBackStack() }
+            val knowledgeViewModel: com.example.ui.screens.knowledge.KnowledgeViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+            com.example.ui.screens.knowledge.KnowledgeHomeScreen(
+                navController = navController,
+                onBack = { navController.popBackStack() },
+                viewModel = knowledgeViewModel
+            )
+        }
+        
+        composable("knowledge_article/{articleId}") { backStackEntry ->
+            val articleId = backStackEntry.arguments?.getString("articleId") ?: return@composable
+            val knowledgeViewModel: com.example.ui.screens.knowledge.KnowledgeViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+            com.example.ui.screens.knowledge.KnowledgeArticleScreen(
+                articleId = articleId,
+                navController = navController,
+                onBack = { navController.popBackStack() },
+                viewModel = knowledgeViewModel
             )
         }
 
         composable(Routes.IMPACT) {
-            ImpactScreen(
-                onBack = { navController.popBackStack() }
+            val impactViewModel: com.example.ui.screens.impact.ImpactViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+            com.example.ui.screens.impact.ImpactHomeScreen(
+                navController = navController,
+                onBack = { navController.popBackStack() },
+                viewModel = impactViewModel
+            )
+        }
+        
+        composable("impact_detail/{initiativeId}") { backStackEntry ->
+            val initiativeId = backStackEntry.arguments?.getString("initiativeId") ?: return@composable
+            val impactViewModel: com.example.ui.screens.impact.ImpactViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+            com.example.ui.screens.impact.ImpactDetailScreen(
+                initiativeId = initiativeId,
+                navController = navController,
+                onBack = { navController.popBackStack() },
+                viewModel = impactViewModel
             )
         }
 

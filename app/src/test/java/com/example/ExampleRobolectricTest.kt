@@ -7,9 +7,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.test.core.app.ApplicationProvider
 import com.example.ui.screens.CompassScreen
 import com.example.ui.screens.CompanionScreen
-import com.example.ui.screens.ImpactScreen
 import com.example.ui.screens.JourneyScreen
-import com.example.ui.screens.KnowledgeScreen
 import com.example.ui.screens.MihrabScreen
 import com.example.ui.screens.ProfileScreen
 import com.example.ui.screens.SettingsScreen

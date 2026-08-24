@@ -4,26 +4,22 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.example.data.local.impact.ImpactDao
-import com.example.data.local.impact.ImpactEntity
-import com.example.data.local.knowledge.KnowledgeDao
-import com.example.data.local.knowledge.KnowledgeEntity
+import com.example.data.local.content.ContentDao
+import com.example.data.local.content.ContentEntity
 import com.example.data.local.studio.StudioDao
 import com.example.data.local.studio.VideoProjectEntity
 
 @Database(
     entities = [
         VideoProjectEntity::class,
-        KnowledgeEntity::class,
-        ImpactEntity::class
+        ContentEntity::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun studioDao(): StudioDao
-    abstract fun knowledgeDao(): KnowledgeDao
-    abstract fun impactDao(): ImpactDao
+    abstract fun contentDao(): ContentDao
 
     companion object {
         @Volatile

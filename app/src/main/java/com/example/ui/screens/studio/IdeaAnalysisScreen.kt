@@ -10,7 +10,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.FormatQuote
-import androidx.compose.material.icons.filled.HelpOutline
+import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.MovieCreation
 import androidx.compose.material.icons.filled.WarningAmber
@@ -233,7 +233,7 @@ fun IdeaAnalysisScreen(
                             Column {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Icon(
-                                        Icons.Default.HelpOutline,
+                                        Icons.AutoMirrored.Filled.HelpOutline,
                                         contentDescription = null,
                                         tint = colors.gold,
                                         modifier = Modifier.size(20.dp)

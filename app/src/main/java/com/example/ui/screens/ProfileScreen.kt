@@ -23,8 +23,10 @@ import androidx.compose.material.icons.filled.CloudDone
 import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.CloudSync
 import androidx.compose.material.icons.filled.DeleteForever
-import androidx.compose.material.icons.filled.ExitToApp
-import androidx.compose.material.icons.filled.Login
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.automirrored.filled.Login
+import androidx.compose.material.icons.filled.PrivacyTip
+import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
@@ -352,7 +354,7 @@ fun ProfileScreen(
                             horizontalArrangement = Arrangement.spacedBy(QabasDimens.Space10)
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Login,
+                                imageVector = Icons.AutoMirrored.Filled.Login,
                                 contentDescription = null,
                                 tint = colors.gold,
                                 modifier = Modifier.size(22.dp)
@@ -382,7 +384,7 @@ fun ProfileScreen(
                             variant = QabasButtonVariant.SecondarySurface,
                             icon = {
                                 Icon(
-                                    imageVector = Icons.Default.ExitToApp,
+                                    imageVector = Icons.AutoMirrored.Filled.ExitToApp,
                                     contentDescription = null,
                                     tint = colors.textSecondary,
                                     modifier = Modifier.size(18.dp)
@@ -511,6 +513,48 @@ fun ProfileScreen(
                         .fillMaxWidth()
                         .testTag("btn_profile_settings")
                 )
+
+                Spacer(modifier = Modifier.height(QabasDimens.Space10))
+
+                // Legal & Privacy Section (Security Review Requirement)
+                SectionTitle(
+                    title = "الخصوصية والشروط",
+                    showAccentDot = true
+                )
+                
+                QabasCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentPadding = QabasDimens.Space14
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(QabasDimens.Space12)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(QabasDimens.Space10)
+                        ) {
+                            Icon(Icons.Default.PrivacyTip, contentDescription = null, tint = colors.gold, modifier = Modifier.size(20.dp))
+                            Column {
+                                Text("سياسة الخصوصية", style = MaterialTheme.typography.titleSmall, color = colors.textPrimary)
+                                Text("غير متاح حاليًا", style = MaterialTheme.typography.labelSmall, color = colors.textSecondary)
+                            }
+                        }
+                        
+                        androidx.compose.material3.HorizontalDivider(color = colors.surfaceBorder, thickness = 1.dp)
+                        
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(QabasDimens.Space10)
+                        ) {
+                            Icon(Icons.Default.Description, contentDescription = null, tint = colors.gold, modifier = Modifier.size(20.dp))
+                            Column {
+                                Text("شروط الاستخدام", style = MaterialTheme.typography.titleSmall, color = colors.textPrimary)
+                                Text("غير متاح حاليًا", style = MaterialTheme.typography.labelSmall, color = colors.textSecondary)
+                            }
+                        }
+                    }
+                }
             }
         }
     }

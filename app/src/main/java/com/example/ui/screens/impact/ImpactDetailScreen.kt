@@ -1,49 +1,24 @@
 package com.example.ui.screens.impact
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Bookmark
-import androidx.compose.material.icons.filled.BookmarkBorder
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.domain.model.content.ContentItem
 import com.example.ui.theme.QabasDarkBackground
 import com.example.ui.theme.QabasGold
 import com.example.ui.theme.QabasSurfaceDarkElevated
@@ -59,141 +34,142 @@ fun ImpactDetailScreen(
     val initiatives by viewModel.initiatives.collectAsState()
     val initiative = initiatives.find { it.id == initiativeId }
 
-    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
-        Scaffold(
-            containerColor = QabasDarkBackground,
-            topBar = {
-                TopAppBar(
-                    title = {
-                        Text("تفاصيل المبادرة", color = QabasGold, fontWeight = FontWeight.Bold)
-                    },
-                    navigationIcon = {
-                        IconButton(onClick = onBack) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "الرجوع", tint = QabasGold)
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("تفاصيل المبادرة", color = QabasGold, fontWeight = FontWeight.Bold) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "الرجوع", tint = QabasGold)
+                    }
+                },
+                actions = {
+                    if (initiative != null) {
+                        IconButton(onClick = { viewModel.toggleFavorite(initiative.id, initiative.isFavorite) }) {
+                            Icon(
+                                if (initiative.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                                contentDescription = "المفضلة",
+                                tint = QabasGold
+                            )
                         }
-                    },
-                    actions = {
-                        if (initiative != null) {
-                            IconButton(onClick = { viewModel.toggleFavorite(initiative.id, initiative.isFavorite) }) {
-                                Icon(
-                                    imageVector = if (initiative.isFavorite) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
-                                    contentDescription = "المفضلة",
-                                    tint = QabasGold
-                                )
-                            }
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = QabasSurfaceDarkElevated)
-                )
-            }
-        ) { paddingValues ->
-            if (initiative != null) {
-                Column(
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = QabasDarkBackground)
+            )
+        },
+        containerColor = QabasDarkBackground
+    ) { paddingValues ->
+        if (initiative != null) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                // Header Image Placeholder
+                Box(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues)
-                        .padding(16.dp)
-                        .verticalScroll(rememberScrollState())
+                        .fillMaxWidth()
+                        .height(200.dp),
+                    contentAlignment = Alignment.Center
                 ) {
+                    // TODO: Replace with Coil Image
+                    Surface(modifier = Modifier.fillMaxSize(), color = QabasSurfaceDarkElevated) {}
+                    Text("صورة المبادرة (قريباً)", color = Color.Gray)
+                }
+
+                Column(modifier = Modifier.padding(24.dp)) {
                     Text(
-                        text = initiative.title,
+                        text = initiative.titleAr,
                         color = Color.White,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 22.sp,
-                        lineHeight = 30.sp
+                        fontSize = 24.sp,
+                        modifier = Modifier.padding(bottom = 8.dp)
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
+                    
                     Text(
                         text = initiative.category.titleAr,
                         color = QabasGold,
-                        fontSize = 14.sp
+                        fontSize = 14.sp,
+                        modifier = Modifier.padding(bottom = 16.dp)
                     )
 
-                    Spacer(modifier = Modifier.height(16.dp))
-                    
+                    // Stats Row
                     Row(
-                        horizontalArrangement = Arrangement.spacedBy(16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(QabasSurfaceDarkElevated)
-                            .padding(12.dp)
+                            .padding(bottom = 24.dp),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.Schedule, contentDescription = null, tint = QabasGold, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("الوقت: ${initiative.approximateTimeMinutes} دقيقة", color = Color.White, fontSize = 13.sp)
+                        Surface(
+                            color = QabasSurfaceDarkElevated,
+                            shape = MaterialTheme.shapes.small,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+                                Icon(Icons.Default.Schedule, contentDescription = null, tint = QabasGold, modifier = Modifier.size(16.dp))
+                                Spacer(Modifier.width(8.dp))
+                                Text("${initiative.approximateTimeMinutes} دقيقة", color = Color.White, fontSize = 13.sp)
+                            }
                         }
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.Star, contentDescription = null, tint = QabasGold, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("الجهد: ${initiative.effortLevel.titleAr}", color = Color.White, fontSize = 13.sp)
+                        
+                        Surface(
+                            color = QabasSurfaceDarkElevated,
+                            shape = MaterialTheme.shapes.small,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+                                Icon(Icons.Default.Star, contentDescription = null, tint = QabasGold, modifier = Modifier.size(16.dp))
+                                Spacer(Modifier.width(8.dp))
+                                Text("الجهد: ${initiative.effortLevel}", color = Color.White, fontSize = 13.sp)
+                            }
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(24.dp))
-
+                    Text("عن المبادرة:", color = QabasGold, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 8.dp))
                     Text(
-                        text = "عن المبادرة",
-                        color = QabasGold,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = initiative.description,
-                        color = Color.White.copy(alpha = 0.9f),
-                        fontSize = 16.sp,
-                        lineHeight = 24.sp
+                        text = initiative.descriptionAr ?: "",
+                        color = Color.LightGray,
+                        lineHeight = 24.sp,
+                        modifier = Modifier.padding(bottom = 24.dp)
                     )
 
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    Text(
-                        text = "خطوات التنفيذ",
-                        color = QabasGold,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Text("خطوات العمل:", color = QabasGold, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 8.dp))
                     Text(
                         text = initiative.detailedSteps,
-                        color = Color.White.copy(alpha = 0.9f),
-                        fontSize = 16.sp,
-                        lineHeight = 26.sp
+                        color = Color.White,
+                        lineHeight = 24.sp,
+                        modifier = Modifier.padding(bottom = 24.dp)
                     )
 
-                    Spacer(modifier = Modifier.height(32.dp))
-
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(Color.White.copy(alpha = 0.05f))
-                            .padding(12.dp)
-                    ) {
-                        Text(
-                            text = "المصدر: ${initiative.source}",
-                            color = Color.White.copy(alpha = 0.7f),
-                            fontSize = 12.sp,
-                            lineHeight = 18.sp
-                        )
+                    if (initiative.source != null) {
+                        Surface(
+                            color = QabasSurfaceDarkElevated.copy(alpha = 0.5f),
+                            shape = MaterialTheme.shapes.small,
+                            modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Text("المصدر:", color = QabasGold, fontSize = 12.sp, modifier = Modifier.padding(bottom = 4.dp))
+                                Text(initiative.source?.name ?: "", color = Color.LightGray, fontSize = 14.sp)
+                                if (initiative.source?.reference != null) {
+                                    Text(initiative.source?.reference ?: "", color = Color.Gray, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
+                                }
+                            }
+                        }
                     }
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
+                    
                     Button(
-                        onClick = { /* Simulated Learn More - No external links per requirements */ },
-                        modifier = Modifier.fillMaxWidth().height(50.dp),
+                        onClick = { /* TODO: Open external link or trigger action */ },
+                        modifier = Modifier.fillMaxWidth().height(56.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = QabasGold)
                     ) {
-                        Text("اعرف المزيد", color = QabasDarkBackground, fontWeight = FontWeight.Bold)
+                        Text("اعرف المزيد", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                     }
                 }
-            } else {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("المبادرة غير موجودة", color = Color.White)
-                }
+            }
+        } else {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = QabasGold)
             }
         }
     }

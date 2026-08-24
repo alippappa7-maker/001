@@ -3,10 +3,11 @@ package com.example.ui.screens.impact
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.data.repository.ImpactRepositoryImpl
-import com.example.domain.model.impact.ImpactCategory
-import com.example.domain.model.impact.ImpactInitiative
-import com.example.domain.repository.ImpactRepository
+import com.example.data.repository.LocalContentRepository
+import com.example.domain.model.content.ContentCategory
+import com.example.domain.model.content.ContentItem
+import com.example.domain.model.content.ContentType
+import com.example.domain.repository.ContentRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -16,24 +17,24 @@ import kotlinx.coroutines.launch
 
 class ImpactViewModel(
     application: Application,
-    private val repository: ImpactRepository = ImpactRepositoryImpl(application)
+    private val repository: ContentRepository = LocalContentRepository(application)
 ) : AndroidViewModel(application) {
 
-    val selectedCategory = MutableStateFlow<ImpactCategory?>(null)
+    val selectedCategory = MutableStateFlow<ContentCategory?>(null)
     val showOnlyFavorites = MutableStateFlow(false)
 
     init {
         viewModelScope.launch {
-            repository.initializeInitiatives()
+            repository.initializeLocalContent()
         }
     }
 
-    val initiatives: StateFlow<List<ImpactInitiative>> = combine(
-        repository.getAllInitiatives(),
+    val initiatives: StateFlow<List<ContentItem.ImpactInitiative>> = combine(
+        repository.observePublishedContent(),
         selectedCategory,
         showOnlyFavorites
-    ) { allInitiatives, category, favoritesOnly ->
-        allInitiatives.filter { initiative ->
+    ) { allContent, category, favoritesOnly ->
+        allContent.filterIsInstance<ContentItem.ImpactInitiative>().filter { initiative ->
             val matchesCategory = if (category == null) true else initiative.category == category
             val matchesFavorites = if (favoritesOnly) initiative.isFavorite else true
 
@@ -41,7 +42,7 @@ class ImpactViewModel(
         }
     }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    fun selectCategory(category: ImpactCategory?) {
+    fun selectCategory(category: ContentCategory?) {
         selectedCategory.value = category
     }
 
@@ -51,7 +52,7 @@ class ImpactViewModel(
 
     fun toggleFavorite(initiativeId: String, currentStatus: Boolean) {
         viewModelScope.launch {
-            repository.toggleFavorite(initiativeId, !currentStatus)
+            repository.setFavorite(initiativeId, !currentStatus)
         }
     }
 }

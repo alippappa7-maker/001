@@ -81,3 +81,20 @@
 1. توجّه إلى تبويب **Actions** في مستودع GitHub.
 2. اختر آخر عملية بناء ناجحة (Workflow run).
 3. في قسم **Artifacts** في أسفل الصفحة، ستجد ملف `qabas-debug-apk` جاهزًا للتحميل المباشر بصيغة ZIP وتثبيته على أي هاتف Android.
+
+## بنية المحتوى (Content Layer)
+تم بناء طبقة محتوى قابلة للتوسع مستقبلًا لتشمل (Article, Lesson, Dhikr, ImpactInitiative)، وتعتمد على المبادئ التالية:
+- **أنواع المحتوى (ContentType):** دعم مدمج لأنواع متعددة مع توفير حقول مخصصة لكل نوع (مثل count للذكر، و videoUrl للدروس).
+- **المصادر والتحقق (Content Validation):** أي محتوى ضمن تصنيف ديني (مثل القرآن، الحديث، الفقه) لا يمكن نشره (`isPublished = true`) إلا بوجود مصدر موثق ومتحقق منه (`verified = true`). يمكن عرض نتائج التحقق باستخدام `ContentValidationResult`.
+- **التخزين المحلي vs المستقبلي:** تم الاعتماد حالياً على `LocalContentRepository` الذي يستخدم `Room Database` لتوفير مسودات ومحتويات تمهيدية للعمل دون اتصال. لا توجد لوحة تحكم إدارية مدمجة داخل التطبيق.
+- **التوسع إلى Firestore:** تم تصميم `ContentRepository` (Interface) ليكون نقطة الاتصال الوحيدة مع الواجهة (`ViewModel`). مستقبلًا، يمكن استبدال `LocalContentRepository` بـ `FirestoreContentRepository` دون أي تغيير في واجهات المستخدم (`UI`) أو `ViewModels`. 
+
+### الصلاحيات المستقبلية (Future Roles)
+تم تصميم نماذج صلاحيات `ContentRole` (USER, EDITOR, DEVELOPER, SUPER_ADMIN) للاستخدام المستقبلي.
+*ملاحظة:* لم يتم تنفيذ حساب مدير داخل التطبيق ولا الاعتماد على `isAdmin` محلي. مستقبلًا، يجب فرض هذه الصلاحيات من خلال Backend (مثل Firebase Authentication و Custom Claims و Firestore Security Rules) لضمان أمان البيانات.
+
+### إضافة مواد محلية
+تتم إضافة المحتوى التمهيدي عبر `initializeLocalContent` في Repository وتأخذ وسم `isPublished = true` إذا استوفت شروط المصادر (للمحتوى الديني)، أو `isPublished = false` (كمسودات).
+
+### الاختبارات
+تمت كتابة اختبارات للتحقق من منطق حفظ المحتوى، وقواعد نشر المحتوى الديني (رفض النشر بلا مصدر)، وتصفية المحتوى حسب التصنيفات والبحث.

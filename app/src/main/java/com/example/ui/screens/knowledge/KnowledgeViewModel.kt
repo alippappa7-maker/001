@@ -3,10 +3,11 @@ package com.example.ui.screens.knowledge
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.data.repository.KnowledgeRepositoryImpl
-import com.example.domain.model.knowledge.KnowledgeArticle
-import com.example.domain.model.knowledge.KnowledgeCategory
-import com.example.domain.repository.KnowledgeRepository
+import com.example.data.repository.LocalContentRepository
+import com.example.domain.model.content.ContentItem
+import com.example.domain.model.content.ContentCategory
+import com.example.domain.model.content.ContentType
+import com.example.domain.repository.ContentRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -16,30 +17,30 @@ import kotlinx.coroutines.launch
 
 class KnowledgeViewModel(
     application: Application,
-    private val repository: KnowledgeRepository = KnowledgeRepositoryImpl(application)
+    private val repository: ContentRepository = LocalContentRepository(application)
 ) : AndroidViewModel(application) {
 
     val searchQuery = MutableStateFlow("")
-    val selectedCategory = MutableStateFlow<KnowledgeCategory?>(null)
+    val selectedCategory = MutableStateFlow<ContentCategory?>(null)
     val showOnlyFavorites = MutableStateFlow(false)
 
     init {
         viewModelScope.launch {
-            repository.initializeLibrary()
+            repository.initializeLocalContent()
         }
     }
 
-    val articles: StateFlow<List<KnowledgeArticle>> = combine(
-        repository.getAllArticles(),
+    val articles: StateFlow<List<ContentItem.Article>> = combine(
+        repository.observePublishedContent(),
         searchQuery,
         selectedCategory,
         showOnlyFavorites
-    ) { allArticles, query, category, favoritesOnly ->
-        allArticles.filter { article ->
+    ) { allContent, query, category, favoritesOnly ->
+        allContent.filterIsInstance<ContentItem.Article>().filter { article ->
             val matchesQuery = if (query.isBlank()) true else {
-                article.title.contains(query, ignoreCase = true) ||
-                article.description.contains(query, ignoreCase = true) ||
-                article.category.titleAr.contains(query, ignoreCase = true)
+                article.titleAr.contains(query, ignoreCase = true) ||
+                article.titleEn.contains(query, ignoreCase = true) ||
+                (article.descriptionAr?.contains(query, ignoreCase = true) ?: false)
             }
             val matchesCategory = if (category == null) true else article.category == category
             val matchesFavorites = if (favoritesOnly) article.isFavorite else true
@@ -52,7 +53,7 @@ class KnowledgeViewModel(
         searchQuery.value = query
     }
 
-    fun selectCategory(category: KnowledgeCategory?) {
+    fun selectCategory(category: ContentCategory?) {
         selectedCategory.value = category
     }
 
@@ -62,13 +63,13 @@ class KnowledgeViewModel(
 
     fun toggleFavorite(articleId: String, currentStatus: Boolean) {
         viewModelScope.launch {
-            repository.toggleFavorite(articleId, !currentStatus)
+            repository.setFavorite(articleId, !currentStatus)
         }
     }
 
     fun updateReadingProgress(articleId: String, progress: Float, position: Int) {
         viewModelScope.launch {
-            repository.updateProgress(articleId, progress, position)
+            repository.saveReadingProgress(articleId, progress, position)
         }
     }
 }

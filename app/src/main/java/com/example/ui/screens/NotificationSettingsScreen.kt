@@ -29,7 +29,7 @@ import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Vibration
-import androidx.compose.material.icons.filled.VolumeUp
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
@@ -412,7 +412,7 @@ fun NotificationSettingsScreen(
                                 modifier = Modifier.weight(1f)
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.VolumeUp,
+                                    imageVector = Icons.AutoMirrored.Filled.VolumeUp,
                                     contentDescription = null,
                                     tint = if (notificationSettings.soundEnabled) colors.gold else colors.textMuted,
                                     modifier = Modifier.size(22.dp)

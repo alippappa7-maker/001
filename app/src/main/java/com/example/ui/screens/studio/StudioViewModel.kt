@@ -49,7 +49,7 @@ enum class StudioFilter {
     DRAFTS_FAILED
 }
 
-class StudioViewModel(
+class StudioViewModel @JvmOverloads constructor(
     application: Application,
     private val repository: StudioRepository = StudioRepositoryImpl(application),
     generationService: VideoGenerationService? = null,

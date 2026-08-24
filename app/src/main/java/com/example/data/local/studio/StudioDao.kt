@@ -12,6 +12,9 @@ interface StudioDao {
     @Query("SELECT * FROM video_projects ORDER BY updatedAt DESC")
     fun getAllProjects(): Flow<List<VideoProjectEntity>>
 
+    @Query("SELECT * FROM video_projects WHERE status = :status ORDER BY updatedAt DESC")
+    fun getProjectsByStatus(status: String): Flow<List<VideoProjectEntity>>
+
     @Query("SELECT * FROM video_projects WHERE id = :id")
     suspend fun getProjectById(id: String): VideoProjectEntity?
 
@@ -23,4 +26,7 @@ interface StudioDao {
 
     @Query("DELETE FROM video_projects WHERE id = :id")
     suspend fun deleteProjectById(id: String)
+
+    @Query("DELETE FROM video_projects")
+    suspend fun deleteAllProjects()
 }

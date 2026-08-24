@@ -14,7 +14,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [36])
+@Config(manifest = Config.NONE, sdk = [34])
 class SettingsScreenTest {
 
     @get:Rule

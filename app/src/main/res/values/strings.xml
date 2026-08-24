@@ -47,19 +47,81 @@
     <string name="complete_task">Complete Task</string>
     <string name="tasks_completed">Tasks completed</string>
 
-    <!-- Studio Screen -->
+    <!-- Studio Screen (Smart Video Factory) -->
     <string name="feature_studio_title">Studio</string>
-    <string name="feature_studio_desc">A space for creativity and mindful reflection</string>
-    <string name="studio_intro_banner">Introductory space — Creative tools will be added later</string>
-    <string name="studio_card_design_title">Visual Design</string>
-    <string name="studio_card_design_desc">Craft impact cards and structured mindful quotes</string>
-    <string name="studio_card_sound_title">Soundscapes &amp; Serenity</string>
-    <string name="studio_card_sound_desc">Library of recitations and soothing ambient natural sounds</string>
-    <string name="studio_card_meditation_title">Contemplation &amp; Mindful Stations</string>
-    <string name="studio_card_meditation_desc">Guided reflection sessions and mindful pause moments</string>
-    <string name="studio_card_notes_title">Notes &amp; Reflections</string>
-    <string name="studio_card_notes_desc">Capture thoughts, insights, and spiritual reflections privately</string>
-    <string name="tool_coming_soon">Coming Soon</string>
+    <string name="feature_studio_desc">Transform your idea into a video</string>
+    <string name="studio_create_video_btn">Create Video</string>
+    <string name="studio_tab_all">All</string>
+    <string name="studio_tab_processing">Processing</string>
+    <string name="studio_tab_completed">Completed</string>
+    <string name="studio_tab_drafts">Drafts &amp; Failed</string>
+    <string name="studio_empty_title">No video projects yet</string>
+    <string name="studio_empty_desc">Start your first video project to transform reflections and insights into engaging, impactful visual content.</string>
+    <string name="studio_empty_action">Create First Video</string>
+    <string name="studio_status_draft">Draft</string>
+    <string name="studio_status_planning">Planned</string>
+    <string name="studio_status_processing">Processing</string>
+    <string name="studio_status_completed">Completed</string>
+    <string name="studio_status_failed">Failed</string>
+    <string name="studio_retry_btn">Retry</string>
+    <string name="studio_open_project">Continue Project</string>
+    <string name="studio_delete_confirm_title">Delete Project?</string>
+    <string name="studio_delete_confirm_desc">Are you sure you want to delete this project? This action cannot be undone.</string>
+    <string name="studio_engine_notice">The video generation engine is currently in development and will be linked in an upcoming update.</string>
+    <string name="studio_local_storage_notice">All projects and storyboards are stored locally on your device.</string>
+
+    <!-- Create Video Project Screen -->
+    <string name="studio_create_title">New Video Project</string>
+    <string name="studio_idea_label">Video Idea</string>
+    <string name="studio_idea_hint">Describe your video idea in detail... (e.g., A short impactful video focusing on sincere intentions in daily worship and its impact on peace of mind)</string>
+    <string name="studio_audience_label">Target Audience</string>
+    <string name="studio_audience_hint">e.g. Youth, Seekers of serenity, Students of knowledge...</string>
+    <string name="studio_language_label">Language</string>
+    <string name="studio_orientation_label">Orientation &amp; Aspect Ratio</string>
+    <string name="studio_duration_label">Duration</string>
+    <string name="studio_tone_label">Video Tone</string>
+    <string name="studio_editing_style_label">Editing Style</string>
+    <string name="studio_options_title">Included Elements &amp; Effects</string>
+    <string name="studio_option_voiceover">Voiceover</string>
+    <string name="studio_option_on_screen_text">On-Screen Text</string>
+    <string name="studio_option_music_effects">Serene Sound Effects</string>
+    <string name="studio_btn_analyze_idea">Analyze Idea</string>
+    <string name="studio_idea_required_error">Please enter a video idea to proceed</string>
+
+    <!-- Idea Analysis Screen -->
+    <string name="studio_analysis_title">Idea Analysis</string>
+    <string name="studio_analysis_summary_label">Idea Summary</string>
+    <string name="studio_analysis_goal_label">Visual Goal &amp; Impact</string>
+    <string name="studio_analysis_audience_label">Target Audience</string>
+    <string name="studio_analysis_format_label">Duration &amp; Format</string>
+    <string name="studio_analysis_style_label">Suggested Editing Style</string>
+    <string name="studio_analysis_scenes_count_label">Suggested Scene Count</string>
+    <string name="studio_analysis_resources_label">Required Resources</string>
+    <string name="studio_analysis_suggested_texts_label">Suggested Titles &amp; Texts</string>
+    <string name="studio_analysis_missing_questions_label">Clarification &amp; Missing Details</string>
+    <string name="studio_analysis_complete_badge">Idea is complete, clear, and ready for storyboard planning</string>
+    <string name="studio_analysis_incomplete_notice">If the idea lacks clarity, consider editing it to achieve optimal scene distribution.</string>
+    <string name="studio_btn_edit_idea">Edit Idea</string>
+    <string name="studio_btn_create_plan">Create Video Plan</string>
+
+    <!-- Video Plan Screen -->
+    <string name="studio_plan_title">Video Storyboard</string>
+    <string name="studio_project_title_label">Project Title</string>
+    <string name="studio_plan_scenes_list">Scene Breakdown</string>
+    <string name="studio_scene_number">Scene #%1$d</string>
+    <string name="studio_scene_duration">%1$d seconds</string>
+    <string name="studio_scene_visual_label">Visual Description:</string>
+    <string name="studio_scene_text_label">On-Screen Text:</string>
+    <string name="studio_scene_voiceover_label">Voiceover:</string>
+    <string name="studio_scene_transition_label">Transition:</string>
+    <string name="studio_scene_asset_label">Required Asset:</string>
+    <string name="studio_scene_instructions_label">Scene Instructions:</string>
+    <string name="studio_btn_add_scene">Add Scene</string>
+    <string name="studio_btn_save_project">Save Project</string>
+    <string name="studio_btn_start_creation">Start Video Creation</string>
+    <string name="studio_edit_scene_dialog_title">Edit Scene</string>
+    <string name="studio_delete_scene_confirm">Are you sure you want to delete this scene from the plan?</string>
+    <string name="studio_scene_saved">Scene updated successfully</string>
 
     <!-- Knowledge Screen -->
     <string name="feature_knowledge_title">Seeking Knowledge</string>

@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 import com.example.data.local.studio.StudioDao
 import com.example.data.local.studio.VideoProjectEntity
 
-@Database(entities = [VideoProjectEntity::class], version = 1, exportSchema = false)
+@Database(entities = [VideoProjectEntity::class], version = 2, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun studioDao(): StudioDao
 
@@ -21,7 +21,9 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "qabas_database"
-                ).build()
+                )
+                .fallbackToDestructiveMigration()
+                .build()
                 INSTANCE = instance
                 instance
             }

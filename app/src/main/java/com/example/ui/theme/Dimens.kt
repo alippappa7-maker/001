@@ -28,6 +28,8 @@ object QabasDimens {
 
     // Corner Radii
     val RadiusXS: Dp = 4.dp
+    val Radius4: Dp = 4.dp
+    val Radius6: Dp = 6.dp
     val RadiusSmall: Dp = 8.dp
     val Radius8: Dp = 8.dp
     val Radius10: Dp = 10.dp

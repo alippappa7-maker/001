@@ -47,19 +47,81 @@
     <string name="complete_task">إنجاز المهمة</string>
     <string name="tasks_completed">المهام المنجزة</string>
 
-    <!-- Studio Screen -->
+    <!-- Studio Screen (Smart Video Factory) -->
     <string name="feature_studio_title">الاستوديو</string>
-    <string name="feature_studio_desc">مساحة للإبداع والتأمل</string>
-    <string name="studio_intro_banner">واجهة تمهيدية — ستضاف الأدوات لاحقًا</string>
-    <string name="studio_card_design_title">التصميم المرئي</string>
-    <string name="studio_card_design_desc">مساحة لتصميم بطاقات الأثر والاقتباسات الروحانية المنظمة</string>
-    <string name="studio_card_sound_title">الصوتيات والسكينة</string>
-    <string name="studio_card_sound_desc">مكتبة تلاوات وأصوات طبيعية هادئة لتعزيز التركيز والخشوع</string>
-    <string name="studio_card_meditation_title">التأمل والتدبر</string>
-    <string name="studio_card_meditation_desc">جلسات تدبر معرفية موجهة ومحطات هدوء يومية</string>
-    <string name="studio_card_notes_title">ملاحظات وخواطر</string>
-    <string name="studio_card_notes_desc">تدوين الأفكار والمشاعر والفوائد العلمية في مساحة خاصة</string>
-    <string name="tool_coming_soon">قريبًا</string>
+    <string name="feature_studio_desc">حوّل فكرتك إلى فيديو</string>
+    <string name="studio_create_video_btn">أنشئ فيديو</string>
+    <string name="studio_tab_all">الكل</string>
+    <string name="studio_tab_processing">قيد المعالجة</string>
+    <string name="studio_tab_completed">المكتملة</string>
+    <string name="studio_tab_drafts">المسودات والفاشلة</string>
+    <string name="studio_empty_title">لا توجد مشاريع فيديو بعد</string>
+    <string name="studio_empty_desc">ابدأ أول مشروع فيديو لتحويل تأملاتك وأفكارك الدعوية والمعرفية إلى محتوى مرئي مؤثر وجذاب.</string>
+    <string name="studio_empty_action">أنشئ أول فيديو</string>
+    <string name="studio_status_draft">مسودة</string>
+    <string name="studio_status_planning">مخطط</string>
+    <string name="studio_status_processing">قيد المعالجة</string>
+    <string name="studio_status_completed">مكتمل</string>
+    <string name="studio_status_failed">تعذر المعالجة</string>
+    <string name="studio_retry_btn">إعادة المحاولة</string>
+    <string name="studio_open_project">متابعة المشروع</string>
+    <string name="studio_delete_confirm_title">حذف المشروع؟</string>
+    <string name="studio_delete_confirm_desc">هل أنت متأكد من حذف هذا المشروع من الاستوديو؟ لا يمكن التراجع عن هذا الإجراء.</string>
+    <string name="studio_engine_notice">محرك التوليد الفعلي قيد التطوير وسيتم ربطه وتفعيله في تحديث قادم.</string>
+    <string name="studio_local_storage_notice">جميع المشاريع والمخططات محفوظة محليًا على جهازك بأمان.</string>
+
+    <!-- Create Video Project Screen -->
+    <string name="studio_create_title">مشروع فيديو جديد</string>
+    <string name="studio_idea_label">فكرة الفيديو</string>
+    <string name="studio_idea_hint">اكتب فكرة الفيديو بالتفصيل... (مثال: مقطع قصير ومؤثر يركز على استحضار النية في الورد اليومي وأثره على طمأنينة القلب والبركة في الوقت)</string>
+    <string name="studio_audience_label">الجمهور المستهدف</string>
+    <string name="studio_audience_hint">مثال: الشباب، الباحثون عن السكينة، طلاب العلم...</string>
+    <string name="studio_language_label">اللغة</string>
+    <string name="studio_orientation_label">أبعاد واتجاه الفيديو</string>
+    <string name="studio_duration_label">المدة الزمنية</string>
+    <string name="studio_tone_label">نبرة الفيديو</string>
+    <string name="studio_editing_style_label">أسلوب المونتاج</string>
+    <string name="studio_options_title">المؤثرات والعناصر المضمنة</string>
+    <string name="studio_option_voiceover">تعليق صوتي</string>
+    <string name="studio_option_on_screen_text">نصوص على الشاشة</string>
+    <string name="studio_option_music_effects">مؤثرات صوتية هادئة</string>
+    <string name="studio_btn_analyze_idea">حلّل الفكرة</string>
+    <string name="studio_idea_required_error">يرجى كتابة فكرة الفيديو أولاً للمتابعة</string>
+
+    <!-- Idea Analysis Screen -->
+    <string name="studio_analysis_title">تحليل الفكرة</string>
+    <string name="studio_analysis_summary_label">ملخص الفكرة</string>
+    <string name="studio_analysis_goal_label">الهدف المرئي والأثر</string>
+    <string name="studio_analysis_audience_label">الجمهور المستهدف</string>
+    <string name="studio_analysis_format_label">المدة والمقاس</string>
+    <string name="studio_analysis_style_label">أسلوب المونتاج المقترح</string>
+    <string name="studio_analysis_scenes_count_label">عدد المشاهد المقترحة</string>
+    <string name="studio_analysis_resources_label">الموارد والمتطلبات المطلوبة</string>
+    <string name="studio_analysis_suggested_texts_label">النصوص والعناوين المقترحة</string>
+    <string name="studio_analysis_missing_questions_label">الأسئلة والإيضاحات الناقصة</string>
+    <string name="studio_analysis_complete_badge">الفكرة مكتملة ومحددة وجاهزة للتخطيط</string>
+    <string name="studio_analysis_incomplete_notice">إذا كانت الفكرة غير واضحة، يُفضل تعديلها للحصول على أفضل توزيع للمشاهد.</string>
+    <string name="studio_btn_edit_idea">تعديل الفكرة</string>
+    <string name="studio_btn_create_plan">إنشاء مخطط الفيديو</string>
+
+    <!-- Video Plan Screen -->
+    <string name="studio_plan_title">مخطط الفيديو</string>
+    <string name="studio_project_title_label">عنوان المشروع</string>
+    <string name="studio_plan_scenes_list">قائمة المشاهد</string>
+    <string name="studio_scene_number">مشهد #%1$d</string>
+    <string name="studio_scene_duration">%1$d ثوانٍ</string>
+    <string name="studio_scene_visual_label">الوصف المرئي:</string>
+    <string name="studio_scene_text_label">النص الظاهر:</string>
+    <string name="studio_scene_voiceover_label">التعليق الصوتي:</string>
+    <string name="studio_scene_transition_label">الانتقال:</string>
+    <string name="studio_scene_asset_label">المورد المطلوب:</string>
+    <string name="studio_scene_instructions_label">تعليمات المشهد:</string>
+    <string name="studio_btn_add_scene">إضافة مشهد</string>
+    <string name="studio_btn_save_project">حفظ المشروع</string>
+    <string name="studio_btn_start_creation">ابدأ إنشاء الفيديو</string>
+    <string name="studio_edit_scene_dialog_title">تعديل المشهد</string>
+    <string name="studio_delete_scene_confirm">هل أنت متأكد من حذف هذا المشهد من المخطط؟</string>
+    <string name="studio_scene_saved">تم تحديث المشهد</string>
 
     <!-- Knowledge Screen -->
     <string name="feature_knowledge_title">طلب العلم</string>

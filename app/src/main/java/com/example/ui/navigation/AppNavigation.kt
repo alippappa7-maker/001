@@ -35,6 +35,8 @@ fun AppNavigation(
     navController: NavHostController,
     startDestination: String
 ) {
+    val studioViewModel: StudioViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+
     NavHost(
         navController = navController,
         startDestination = startDestination,
@@ -103,25 +105,29 @@ fun AppNavigation(
         composable(Routes.STUDIO) {
             StudioHomeScreen(
                 navController = navController,
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                viewModel = studioViewModel
             )
         }
         composable(Routes.STUDIO_CREATE) {
             CreateVideoProjectScreen(
                 navController = navController,
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                viewModel = studioViewModel
             )
         }
         composable(Routes.STUDIO_ANALYSIS) {
             IdeaAnalysisScreen(
                 navController = navController,
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                viewModel = studioViewModel
             )
         }
         composable(Routes.STUDIO_PLAN) {
             VideoPlanScreen(
                 navController = navController,
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                viewModel = studioViewModel
             )
         }
 

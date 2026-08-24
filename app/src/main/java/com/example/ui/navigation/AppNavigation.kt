@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalViewModelStoreOwner
+import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.lifecycle.ViewModelProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -65,7 +65,7 @@ private fun rememberStudioViewModel(): StudioViewModel {
                     return StudioViewModel(application) as T
                 }
             }
-        )[StudioViewModel::class.java]
+        ).get(StudioViewModel::class.java)
     }
 }
 

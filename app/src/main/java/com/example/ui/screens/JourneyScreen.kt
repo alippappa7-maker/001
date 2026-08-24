@@ -1,6 +1,7 @@
 package com.example.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoStories
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Mosque
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -26,6 +28,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,6 +38,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.R
 import com.example.ui.components.QabasBottomNavigation
@@ -44,6 +50,7 @@ import com.example.ui.components.SectionTitle
 import com.example.ui.components.StarryBackground
 import com.example.ui.navigation.NavigationManager
 import com.example.ui.navigation.Routes
+import com.example.ui.screens.home.HomeViewModel
 import com.example.ui.theme.MihrabGreen
 import com.example.ui.theme.QabasDimens
 import com.example.ui.theme.QabasThemeTokens
@@ -51,9 +58,12 @@ import com.example.ui.theme.QabasThemeTokens
 @Composable
 fun JourneyScreen(
     navController: NavController? = null,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    viewModel: HomeViewModel = viewModel()
 ) {
     val colors = QabasThemeTokens.colors
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val journey = uiState.dailyJourney
 
     Scaffold(
         modifier = Modifier.testTag("screen_journey"),
@@ -96,7 +106,10 @@ fun JourneyScreen(
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                // Progress Circle Card
+                // Dynamic Progress Circle Card
+                val progressPercent = (journey.overallProgress * 100).toInt()
+                val isStarted = journey.completedStepsCount > 0
+
                 QabasCard(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -110,27 +123,40 @@ fun JourneyScreen(
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             CircularProgressIndicator(
-                                progress = { 0.72f },
+                                progress = { journey.overallProgress },
                                 modifier = Modifier.size(130.dp),
-                                color = colors.gold,
+                                color = if (journey.overallProgress >= 1f) MihrabGreen else colors.gold,
                                 strokeWidth = 8.dp,
                                 trackColor = colors.surfaceBorder
                             )
                             Column(
-                                horizontalAlignment = Alignment.CenterHorizontally
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier.padding(horizontal = QabasDimens.Space8)
                             ) {
-                                Text(
-                                    text = "72%",
-                                    style = MaterialTheme.typography.displaySmall.copy(
-                                        fontWeight = FontWeight.Bold
-                                    ),
-                                    color = colors.gold
-                                )
-                                Text(
-                                    text = stringResource(id = R.string.journey_completed_today),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = colors.textSecondary
-                                )
+                                if (isStarted) {
+                                    Text(
+                                        text = "$progressPercent%",
+                                        style = MaterialTheme.typography.displaySmall.copy(
+                                            fontWeight = FontWeight.Bold
+                                        ),
+                                        color = if (journey.overallProgress >= 1f) MihrabGreen else colors.gold
+                                    )
+                                    Text(
+                                        text = stringResource(id = R.string.journey_completed_today),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = colors.textSecondary
+                                    )
+                                } else {
+                                    Text(
+                                        text = stringResource(id = R.string.journey_start_today),
+                                        style = MaterialTheme.typography.titleSmall.copy(
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 14.sp
+                                        ),
+                                        color = colors.gold,
+                                        textAlign = TextAlign.Center
+                                    )
+                                }
                             }
                         }
                     }
@@ -156,7 +182,7 @@ fun JourneyScreen(
                             )
                             Spacer(modifier = Modifier.height(QabasDimens.Space4))
                             Text(
-                                text = stringResource(id = R.string.journey_streak_count),
+                                text = "${journey.streakDays}",
                                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                                 color = colors.gold
                             )
@@ -178,7 +204,7 @@ fun JourneyScreen(
                             )
                             Spacer(modifier = Modifier.height(QabasDimens.Space4))
                             Text(
-                                text = stringResource(id = R.string.journey_steps_count),
+                                text = "${journey.completedStepsCount} / ${journey.totalStepsCount}",
                                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                                 color = colors.gold
                             )
@@ -187,34 +213,63 @@ fun JourneyScreen(
                 }
 
                 // Daily Tasks Cards
-                // 1. Dhikr Task
-                JourneyTaskCard(
-                    title = stringResource(id = R.string.journey_item_dhikr_title),
-                    description = stringResource(id = R.string.journey_item_dhikr_desc),
-                    icon = Icons.Default.Mosque,
-                    isCompleted = true,
-                    testTag = "card_task_dhikr"
-                )
-
-                // 2. Quran Task
-                JourneyTaskCard(
-                    title = stringResource(id = R.string.journey_item_quran_title),
-                    description = stringResource(id = R.string.journey_item_quran_desc),
-                    icon = Icons.Default.AutoStories,
-                    isCompleted = true,
-                    testTag = "card_task_quran"
-                )
-
-                // 3. Prayer Task
+                // 1. Prayer Task
                 JourneyTaskCard(
                     title = stringResource(id = R.string.journey_item_prayer_title),
                     description = stringResource(id = R.string.journey_item_prayer_desc),
                     icon = Icons.Default.CheckCircle,
-                    isCompleted = false,
-                    testTag = "card_task_prayer"
+                    isCompleted = journey.prayerCompleted,
+                    testTag = "card_task_prayer",
+                    onClick = {
+                        if (navController != null) {
+                            NavigationManager.navigateSingleTop(navController, Routes.MIHRAB)
+                        }
+                    }
                 )
 
-                // Demo Notice Banner
+                // 2. Dhikr Task
+                JourneyTaskCard(
+                    title = stringResource(id = R.string.journey_item_dhikr_title),
+                    description = stringResource(id = R.string.journey_item_dhikr_desc),
+                    icon = Icons.Default.Mosque,
+                    isCompleted = journey.dhikrCompleted,
+                    testTag = "card_task_dhikr",
+                    onClick = {
+                        if (navController != null) {
+                            NavigationManager.navigateSingleTop(navController, Routes.MIHRAB)
+                        }
+                    }
+                )
+
+                // 3. Quran & Knowledge Reading Task
+                JourneyTaskCard(
+                    title = stringResource(id = R.string.journey_item_quran_title),
+                    description = stringResource(id = R.string.journey_item_quran_desc),
+                    icon = Icons.Default.AutoStories,
+                    isCompleted = journey.readingCompleted,
+                    testTag = "card_task_quran",
+                    onClick = {
+                        if (navController != null) {
+                            NavigationManager.navigateSingleTop(navController, Routes.KNOWLEDGE)
+                        }
+                    }
+                )
+
+                // 4. Impact & Beneficial Deeds Task
+                JourneyTaskCard(
+                    title = stringResource(id = R.string.journey_impact_title),
+                    description = stringResource(id = R.string.journey_impact_desc),
+                    icon = Icons.Default.Favorite,
+                    isCompleted = journey.impactCompleted,
+                    testTag = "card_task_impact",
+                    onClick = {
+                        if (navController != null) {
+                            NavigationManager.navigateSingleTop(navController, Routes.IMPACT)
+                        }
+                    }
+                )
+
+                // Live Sync Notice Banner
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -241,13 +296,15 @@ private fun JourneyTaskCard(
     description: String,
     icon: ImageVector,
     isCompleted: Boolean,
-    testTag: String
+    testTag: String,
+    onClick: () -> Unit
 ) {
     val colors = QabasThemeTokens.colors
 
     QabasCard(
         modifier = Modifier
             .fillMaxWidth()
+            .clickable(onClick = onClick)
             .testTag(testTag),
         glowAccent = if (isCompleted) MihrabGreen else colors.gold,
         contentPadding = QabasDimens.Space14

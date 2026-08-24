@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">قبس</string>
+    <string name="experimental_data_warning_short">بيانات تجريبية غير مربوطة</string>
     <string name="welcome_title">رحلتك نحو السكينة تبدأ من هنا</string>
     <string name="start_now">ابدأ الآن</string>
     <string name="skip">تخطي</string>
@@ -159,10 +160,13 @@
     <!-- Journey Screen -->
     <string name="card_journey_title">رحلتك اليوم</string>
     <string name="journey_subtitle">سجل إنجازاتك اليومية في مسار السكينة</string>
+    <string name="journey_start_today">ابدأ رحلتك اليوم</string>
+    <string name="journey_impact_title">الأثر والعمل النافع</string>
+    <string name="journey_impact_desc">بصمة خير، كلمة طيبة، أو مشاركة علم نافع</string>
     <string name="journey_item_dhikr_title">ورد الأذكار اليومي</string>
     <string name="journey_item_dhikr_desc">أذكار الصباح والمساء والاستغفار</string>
     <string name="journey_item_quran_title">ورد القراءة والتدبر</string>
-    <string name="journey_item_quran_desc">قراءة حزب يومي مع تدبر آية</string>
+    <string name="journey_item_quran_desc">قراءة ومطالعة نافعة مع تدبر آية</string>
     <string name="journey_item_prayer_title">الصلوات الخمس والسنن</string>
     <string name="journey_item_prayer_desc">أداء الصلاة في وقتها بحضور وخشوع</string>
     <string name="journey_completed_today">مكتمل اليوم</string>
@@ -170,7 +174,7 @@
     <string name="journey_streak_count">7 أيام</string>
     <string name="journey_completed_steps">الخطوات المنجزة</string>
     <string name="journey_steps_count">5 / 7</string>
-    <string name="journey_demo_notice">ملاحظة: البيانات المعروضة تجريبية في هذه المرحلة لأغراض الاستعراض</string>
+    <string name="journey_demo_notice">ملاحظة: البيانات المعروضة تعكس تفاعلك اليومي الحي عبر جميع أقسام التطبيق</string>
 
     <!-- Profile & Firebase Auth -->
     <string name="profile_guest_name">ضيف قبس</string>

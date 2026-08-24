@@ -1,5 +1,6 @@
 package com.example.ui.screens
 
+import android.provider.Settings
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -78,11 +79,17 @@ import com.example.ui.theme.QabasGold
 import com.example.ui.theme.QabasThemeTokens
 import com.example.ui.theme.StudioBlue
 import kotlinx.coroutines.launch
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlin.math.cos
 import kotlin.math.sin
 
 @Composable
-fun HomeScreen(navController: NavController) {
+fun HomeScreen(
+    navController: NavController,
+    viewModel: com.example.ui.screens.home.HomeViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -130,12 +137,12 @@ fun HomeScreen(navController: NavController) {
                 }
 
                 item {
-                    OrbitalSystem(navController = navController)
+                    OrbitalSystem(navController = navController, uiState = uiState)
                     Spacer(modifier = Modifier.height(QabasDimens.Space24))
                 }
 
                 item {
-                    BottomCardsSection(navController = navController)
+                    BottomCardsSection(navController = navController, uiState = uiState)
                     Spacer(modifier = Modifier.height(QabasDimens.Space16))
                 }
             }
@@ -255,7 +262,7 @@ private fun HomeHeaderGreeting() {
 }
 
 @Composable
-fun OrbitalSystem(navController: NavController) {
+fun OrbitalSystem(navController: NavController, uiState: com.example.domain.model.home.DashboardState) {
     val colors = QabasThemeTokens.colors
 
     BoxWithConstraints(
@@ -270,12 +277,17 @@ fun OrbitalSystem(navController: NavController) {
         val orbitRadius = (containerSize * 0.37f).coerceIn(115.dp, 142.dp)
         val orbSize = (containerSize * 0.155f).coerceIn(52.dp, 60.dp)
 
+        val context = LocalContext.current
+        val reduceMotionEnabled = remember {
+            Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
+        }
+
         val infiniteTransition = rememberInfiniteTransition(label = "orbital")
         val rotation by infiniteTransition.animateFloat(
             initialValue = 0f,
-            targetValue = 360f,
+            targetValue = if (reduceMotionEnabled) 0f else 360f,
             animationSpec = infiniteRepeatable(
-                animation = tween(90000, easing = LinearEasing),
+                animation = tween(if (reduceMotionEnabled) 0 else 90000, easing = LinearEasing),
                 repeatMode = RepeatMode.Restart
             ),
             label = "rotation"
@@ -350,11 +362,51 @@ fun OrbitalSystem(navController: NavController) {
 
             // The 5 Feature Orbs
             val orbs = listOf(
-                OrbData("01", R.string.feature_studio_title, R.drawable.qabas_orb_studio_1787516791381, StudioBlue, Routes.STUDIO, "orb_studio"),
-                OrbData("02", R.string.feature_companion_title, R.drawable.qabas_orb_companion_1787516801929, CompanionPurple, Routes.COMPANION, "orb_companion"),
-                OrbData("03", R.string.feature_mihrab_title, R.drawable.qabas_orb_mihrab_1787516818194, MihrabGreen, Routes.MIHRAB, "orb_mihrab"),
-                OrbData("04", R.string.feature_knowledge_title, R.drawable.qabas_orb_knowledge_1787516830952, KnowledgeTurquoise, Routes.KNOWLEDGE, "orb_knowledge"),
-                OrbData("05", R.string.feature_impact_title, R.drawable.qabas_orb_impact_1787516843202, ImpactOliveGold, Routes.IMPACT, "orb_impact")
+                OrbData(
+                    number = if (uiState.studioProjectCount > 0) uiState.studioProjectCount.toString() else null,
+                    titleRes = R.string.feature_studio_title,
+                    imageRes = R.drawable.qabas_orb_studio_1787516791381,
+                    color = StudioBlue,
+                    route = Routes.STUDIO,
+                    testTag = "orb_studio",
+                    subtitle = if (uiState.studioProjectCount > 0) "مشاريعك: ${uiState.studioProjectCount}" else "لا توجد مشاريع"
+                ),
+                OrbData(
+                    number = null,
+                    titleRes = R.string.feature_companion_title,
+                    imageRes = R.drawable.qabas_orb_companion_1787516801929,
+                    color = CompanionPurple,
+                    route = Routes.COMPANION,
+                    testTag = "orb_companion",
+                    subtitle = "قريباً" // Not connected to real LLM yet
+                ),
+                OrbData(
+                    number = if (uiState.dailyDhikrCompleted) "✓" else null,
+                    titleRes = R.string.feature_mihrab_title,
+                    imageRes = R.drawable.qabas_orb_mihrab_1787516818194,
+                    color = MihrabGreen,
+                    route = Routes.MIHRAB,
+                    testTag = "orb_mihrab",
+                    subtitle = uiState.nextPrayer ?: "المحراب"
+                ),
+                OrbData(
+                    number = if (uiState.knowledgeCompletedItems > 0) uiState.knowledgeCompletedItems.toString() else null,
+                    titleRes = R.string.feature_knowledge_title,
+                    imageRes = R.drawable.qabas_orb_knowledge_1787516830952,
+                    color = KnowledgeTurquoise,
+                    route = Routes.KNOWLEDGE,
+                    testTag = "orb_knowledge",
+                    subtitle = "${(uiState.knowledgeProgress * 100).toInt()}% مكتمل"
+                ),
+                OrbData(
+                    number = if (uiState.impactFavoritesCount > 0) uiState.impactFavoritesCount.toString() else null,
+                    titleRes = R.string.feature_impact_title,
+                    imageRes = R.drawable.qabas_orb_impact_1787516843202,
+                    color = ImpactOliveGold,
+                    route = Routes.IMPACT,
+                    testTag = "orb_impact",
+                    subtitle = "مبادراتك: ${uiState.impactFavoritesCount}"
+                )
             )
 
             orbs.forEachIndexed { index, orbData ->
@@ -372,6 +424,7 @@ fun OrbitalSystem(navController: NavController) {
                 ) {
                     GlowingOrb(
                         title = stringResource(id = orbData.titleRes),
+                        subtitle = orbData.subtitle,
                         imagePainter = painterResource(id = orbData.imageRes),
                         glowColor = orbData.color,
                         numberBadge = orbData.number,
@@ -387,64 +440,71 @@ fun OrbitalSystem(navController: NavController) {
 }
 
 data class OrbData(
-    val number: String,
+    val number: String?,
     val titleRes: Int,
     val imageRes: Int,
     val color: Color,
     val route: String,
-    val testTag: String
+    val testTag: String,
+    val subtitle: String? = null
 )
 
 @Composable
-fun BottomCardsSection(navController: NavController) {
+fun BottomCardsSection(navController: NavController, uiState: com.example.domain.model.home.DashboardState) {
     val colors = QabasThemeTokens.colors
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = QabasDimens.Space16),
-        horizontalArrangement = Arrangement.spacedBy(QabasDimens.Space10)
-    ) {
-        // 1. Compass Status Card
-        InfoCard(
-            modifier = Modifier
-                .weight(1f)
-                .testTag("card_compass_quick"),
-            label = stringResource(id = R.string.compass_title),
-            value = stringResource(id = R.string.card_compass_status),
-            accentColor = colors.gold,
-            onClick = {
-                NavigationManager.navigateSingleTop(navController, Routes.COMPASS)
-            }
+    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = QabasDimens.Space16)) {
+        Text(
+            text = stringResource(id = R.string.experimental_data_warning_short),
+            style = MaterialTheme.typography.labelSmall,
+            color = colors.gold.copy(alpha = 0.7f),
+            modifier = Modifier.padding(bottom = QabasDimens.Space8, start = QabasDimens.Space4)
         )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(QabasDimens.Space10)
+        ) {
+            // 1. Compass Status Card
+            InfoCard(
+                modifier = Modifier
+                    .weight(1f)
+                    .testTag("card_compass_quick"),
+                label = stringResource(id = R.string.compass_title),
+                value = uiState.qiblaStatus,
+                accentColor = colors.gold,
+                onClick = {
+                    NavigationManager.navigateSingleTop(navController, Routes.COMPASS)
+                }
+            )
 
-        // 2. Journey Progress Card
-        InfoCard(
-            modifier = Modifier
-                .weight(1f)
-                .testTag("card_journey_quick"),
-            label = stringResource(id = R.string.card_journey_title),
-            value = "72%",
-            showProgressBar = true,
-            progress = 0.72f,
-            accentColor = colors.gold,
-            onClick = {
-                NavigationManager.navigateSingleTop(navController, Routes.JOURNEY)
-            }
-        )
+            // 2. Journey Progress Card
+            InfoCard(
+                modifier = Modifier
+                    .weight(1f)
+                    .testTag("card_journey_quick"),
+                label = stringResource(id = R.string.card_journey_title),
+                value = "${(uiState.dailyJourneyProgress * 100).toInt()}%",
+                showProgressBar = true,
+                progress = uiState.dailyJourneyProgress,
+                accentColor = colors.gold,
+                onClick = {
+                    NavigationManager.navigateSingleTop(navController, Routes.JOURNEY)
+                }
+            )
 
-        // 3. Dhikr Card
-        InfoCard(
-            modifier = Modifier
-                .weight(1f)
-                .testTag("card_mihrab_quick"),
-            label = stringResource(id = R.string.card_dhikr_title),
-            value = stringResource(id = R.string.card_dhikr_content),
-            accentColor = colors.gold,
-            onClick = {
-                NavigationManager.navigateSingleTop(navController, Routes.MIHRAB)
-            }
-        )
+            // 3. Dhikr Card
+            InfoCard(
+                modifier = Modifier
+                    .weight(1f)
+                    .testTag("card_mihrab_quick"),
+                label = stringResource(id = R.string.card_dhikr_title),
+                value = uiState.todayQuote ?: "تذكر الله",
+                accentColor = colors.gold,
+                onClick = {
+                    NavigationManager.navigateSingleTop(navController, Routes.MIHRAB)
+                }
+            )
+        }
     }
 }
 

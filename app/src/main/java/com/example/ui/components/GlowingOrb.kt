@@ -52,6 +52,7 @@ fun GlowingOrb(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     numberBadge: String? = null,
+    subtitle: String? = null,
     orbSize: Dp = QabasDimens.OrbSizeDefault
 ) {
     val colors = QabasThemeTokens.colors
@@ -144,5 +145,18 @@ fun GlowingOrb(
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
+        
+        if (subtitle != null) {
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.labelSmall.copy(
+                    fontSize = 9.sp
+                ),
+                color = colors.textSecondary,
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
     }
 }

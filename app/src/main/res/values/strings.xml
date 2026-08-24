@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">QABAS</string>
+    <string name="experimental_data_warning_short">Experimental data (not linked)</string>
     <string name="welcome_title">Your journey to tranquility starts here</string>
     <string name="start_now">Start Now</string>
     <string name="skip">Skip</string>
@@ -159,6 +160,9 @@
     <!-- Journey Screen -->
     <string name="card_journey_title">Today\'s Journey</string>
     <string name="journey_subtitle">Your daily milestones in the pathway of serenity</string>
+    <string name="journey_start_today">Start your journey today</string>
+    <string name="journey_impact_title">Impact &amp; Good Deeds</string>
+    <string name="journey_impact_desc">A footprint of goodness, kind words, or sharing knowledge</string>
     <string name="journey_item_dhikr_title">Daily Dhikr Habit</string>
     <string name="journey_item_dhikr_desc">Morning, evening, and daily seeking of forgiveness</string>
     <string name="journey_item_quran_title">Reading &amp; Contemplation</string>
@@ -170,7 +174,7 @@
     <string name="journey_streak_count">7 Days</string>
     <string name="journey_completed_steps">Steps Accomplished</string>
     <string name="journey_steps_count">5 / 7</string>
-    <string name="journey_demo_notice">Notice: Data displayed is for preview purposes in this release</string>
+    <string name="journey_demo_notice">Notice: Data displayed reflects your live daily engagement across all sections</string>
 
     <!-- Profile & Firebase Auth -->
     <string name="profile_guest_name">Qabas Seeker</string>

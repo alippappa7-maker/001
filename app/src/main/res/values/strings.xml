@@ -110,7 +110,7 @@
     <string name="journey_steps_count">5 / 7</string>
     <string name="journey_demo_notice">Notice: Data displayed is for preview purposes in this release</string>
 
-    <!-- Profile Screen -->
+    <!-- Profile & Firebase Auth -->
     <string name="profile_guest_name">Qabas Seeker</string>
     <string name="profile_guest_bio">Explorer on a journey of serenity</string>
     <string name="profile_stat_journeys">Journeys</string>
@@ -120,13 +120,70 @@
     <string name="profile_stat_level">Level</string>
     <string name="profile_stat_level_val">Consistent</string>
     <string name="profile_login_btn">Sign In / Create Account</string>
-    <string name="profile_login_notice">Account management and synchronization will be added in a future phase</string>
+    <string name="profile_login_notice">Sign in to safely backup and synchronize your journey across devices</string>
     <string name="profile_quick_settings_title">Quick Settings</string>
 
+    <string name="auth_title">Account &amp; Cloud Sync</string>
+    <string name="auth_login_tab">Sign In</string>
+    <string name="auth_register_tab">New Account</string>
+    <string name="auth_email_hint">Email Address</string>
+    <string name="auth_password_hint">Password</string>
+    <string name="auth_name_hint">Full Name (optional)</string>
+    <string name="auth_submit_login">Sign In</string>
+    <string name="auth_submit_register">Create Account</string>
+    <string name="auth_google_sign_in">Continue with Google</string>
+    <string name="auth_guest_continue">Continue as Guest</string>
+    <string name="auth_guest_badge">Guest Mode • Local Storage Only</string>
+    <string name="auth_logged_in_as">Signed in as</string>
+    <string name="auth_logout">Sign Out</string>
+    <string name="auth_delete_account">Delete Account</string>
+    <string name="auth_delete_confirm_title">Delete Account?</string>
+    <string name="auth_delete_confirm_desc">This will permanently delete your account and remove all synced cloud data. Local data will remain on your device.</string>
+    <string name="auth_delete_btn">Confirm Deletion</string>
+    <string name="auth_sync_now">Sync Data Now</string>
+    <string name="auth_syncing">Syncing data with cloud...</string>
+    <string name="auth_synced_success">Data synced successfully with cloud</string>
+    <string name="auth_sync_error">Sync failed. Using local data safely.</string>
+    <string name="auth_sync_status_label">Cloud Sync Status</string>
+    <string name="auth_sync_status_connected">Connected &amp; Synced</string>
+    <string name="auth_sync_status_offline">Offline • Saved Locally</string>
+    <string name="auth_error_invalid_email">Please enter a valid email address</string>
+    <string name="auth_error_short_password">Password must be at least 6 characters</string>
+    <string name="auth_error_generic">Authentication error. Please try again.</string>
+    <string name="auth_error_network">Network unavailable. Your data is stored locally.</string>
+    <string name="auth_firebase_setup_notice">Local Mode Active • Add google-services.json to enable live Firebase Sync</string>
+
     <!-- Companion Screen -->
-    <string name="feature_companion_title">Smart Companion</string>
-    <string name="feature_companion_desc">Your assistant in the learning journey</string>
-    <string name="feature_companion_later">Smart Companion is coming in the next phase</string>
+    <string name="feature_companion_title">Qabas Companion</string>
+    <string name="feature_companion_desc">Your spiritual and educational assistant</string>
+    <string name="feature_companion_later">Smart Companion is ready to assist you</string>
+    <string name="companion_disclaimer">Notice: Qabas Companion is an educational and spiritual tool, and is not a substitute for consulting qualified scholars and specialists.</string>
+    <string name="companion_welcome_message">Peace and blessings be upon you. I am Qabas Companion, your assistant for mindfulness, Quranic reflection, and beneficial knowledge. How may I assist you today?</string>
+    <string name="companion_input_hint">Ask Qabas Companion (Max 500 chars)...</string>
+    <string name="companion_send">Send</string>
+    <string name="companion_stop">Stop Generating</string>
+    <string name="companion_retry">Retry</string>
+    <string name="companion_clear">Clear Chat</string>
+    <string name="companion_clear_confirm_title">Clear Conversation?</string>
+    <string name="companion_clear_confirm_desc">This will erase all current messages from the screen.</string>
+    <string name="companion_save_history_title">Save Chat History</string>
+    <string name="companion_save_history_desc">Chats are stored locally only when permitted by you.</string>
+    <string name="companion_report_button">Report</string>
+    <string name="companion_report_dialog_title">Report Response</string>
+    <string name="companion_report_dialog_desc">Thank you. Your feedback has been noted to improve content accuracy and safety.</string>
+    <string name="companion_report_dismiss">Dismiss</string>
+    <string name="companion_error_network">No internet connection. Please check your network and try again.</string>
+    <string name="companion_error_empty">No response received. Please try rephrasing your question.</string>
+    <string name="companion_error_rate_limit">Rate limit reached. Please wait a moment before sending another message.</string>
+    <string name="companion_error_length">Message exceeds the 500 character limit.</string>
+    <string name="companion_error_service">The companion service is currently unavailable. Please try again later.</string>
+    <string name="companion_suggested_prompts_title">Suggested Topics</string>
+    <string name="companion_prompt_1">What are the benefits of morning &amp; evening Dhikr?</string>
+    <string name="companion_prompt_2">How can I enhance focus and mindfulness in prayer?</string>
+    <string name="companion_prompt_3">Share a reflection on the value of sincere charity</string>
+    <string name="companion_prompt_4">Steps to build a daily habit of Quran contemplation</string>
+    <string name="companion_model_badge">Qabas AI • Gemini Engine</string>
+    <string name="companion_chars_count">%1$d / %2$d</string>
 
     <!-- Bottom Navigation -->
     <string name="bottom_nav_home">Home</string>
@@ -149,10 +206,77 @@
     <string name="settings_theme_dark_desc">Calming and eye-friendly dark aesthetic</string>
     <string name="settings_theme_light_desc">Bright and serene spiritual aesthetic</string>
     
+    <!-- Prayer Times -->
+    <string name="prayer_times_title">Prayer Times</string>
+    <string name="prayer_fajr">Fajr</string>
+    <string name="prayer_sunrise">Sunrise</string>
+    <string name="prayer_dhuhr">Dhuhr</string>
+    <string name="prayer_asr">Asr</string>
+    <string name="prayer_maghrib">Maghrib</string>
+    <string name="prayer_isha">Isha</string>
+    <string name="prayer_next">Next Prayer</string>
+    <string name="prayer_remaining">Remaining</string>
+    <string name="prayer_time_now">It is now time for</string>
+    <string name="prayer_refresh">Refresh Times</string>
+    <string name="prayer_last_updated">Last updated: %1$s</string>
+    <string name="prayer_offline_notice">Offline mode • Showing cached times</string>
+    <string name="prayer_stale_warning">Data is from a previous day. Tap refresh to update.</string>
+    <string name="prayer_fetching">Fetching accurate prayer times...</string>
+    <string name="prayer_fetch_error">Unable to fetch online times. Showing offline cached data.</string>
+    <string name="prayer_location_default">Abu Jurayn, Aleppo Governorate, Syria</string>
+    <string name="prayer_location_gps">Current Location (GPS)</string>
+    <string name="prayer_location_mode">Location Source</string>
+    <string name="prayer_location_auto">Auto Detect (GPS)</string>
+    <string name="prayer_location_manual">Choose City Manually</string>
+    <string name="prayer_select_city">Select City</string>
+    <string name="prayer_settings_title">Prayer Times Settings</string>
+    <string name="prayer_method_title">Calculation Method</string>
+    <string name="prayer_madhab_title">Asr Juristic Method</string>
+    <string name="prayer_madhab_standard">Standard (Shafi\'i, Maliki, Hanbali)</string>
+    <string name="prayer_madhab_hanafi">Hanafi</string>
+    <string name="prayer_timezone_title">Timezone</string>
+    <string name="prayer_adjustments_title">Manual Minute Adjustments</string>
+    <string name="prayer_adjustments_desc">Fine-tune individual prayer times (+/- minutes)</string>
+    <string name="prayer_minutes_suffix">%1$d min</string>
+    <string name="prayer_reset_adjustments">Reset Adjustments</string>
+    <string name="prayer_edit_settings">Prayer Settings</string>
+
     <!-- General -->
     <string name="btn_back">Back</string>
     <string name="btn_return_home">Return to Home</string>
     <string name="notifications_title">Notifications</string>
     <string name="profile_settings_title">Settings</string>
     <string name="avatar_description">User Avatar</string>
+
+    <!-- Notification Strings & Channels -->
+    <string name="notif_channel_prayers_name">Prayer Times</string>
+    <string name="notif_channel_prayers_desc">Timely alerts for prayer times</string>
+    <string name="notif_channel_dhikr_name">Daily Dhikr &amp; Habits</string>
+    <string name="notif_channel_dhikr_desc">Daily remembrance and mindfulness reminders</string>
+    <string name="notif_prayer_title">Time for %1$s</string>
+    <string name="notif_prayer_body">It is now time for %1$s prayer (%2$s). Take a mindful pause for your creator.</string>
+    <string name="notif_dhikr_title">Daily Dhikr Reminder</string>
+    <string name="notif_dhikr_body">Glory be to Allah and praise Him. Enrich your day with mindfulness.</string>
+    <string name="notif_test_title">Qabas Notification Test</string>
+    <string name="notif_test_body">Your notifications and alerts are functioning properly.</string>
+    
+    <string name="notif_master_switch">Enable All Notifications</string>
+    <string name="notif_master_switch_desc">Receive prayer alerts and daily mindfulness reminders</string>
+    <string name="notif_section_prayers">Prayer Times Alerts</string>
+    <string name="notif_section_prayers_desc">Select which prayers you want to be notified for</string>
+    <string name="notif_section_dhikr">Daily Dhikr Reminder</string>
+    <string name="notif_section_sound">Sound &amp; Vibration</string>
+    <string name="notif_sound_toggle">Play Sound</string>
+    <string name="notif_sound_desc">Play audible notification tone</string>
+    <string name="notif_vibrate_toggle">Vibrate</string>
+    <string name="notif_vibrate_desc">Vibrate device on notification</string>
+    <string name="notif_dhikr_toggle">Daily Dhikr Notification</string>
+    <string name="notif_dhikr_time">Reminder Time: %1$02d:%2$02d</string>
+    <string name="notif_dhikr_time_label">Reminder Time</string>
+    <string name="notif_test_button">Send Test Notification</string>
+    <string name="notif_permission_banner_title">Enable System Notifications</string>
+    <string name="notif_permission_banner_desc">Allow notifications so Qabas can remind you of prayer times and daily habits on time.</string>
+    <string name="notif_permission_btn">Grant Permission</string>
+    <string name="notif_permission_granted">Notifications active</string>
+    <string name="notif_permission_denied_hint">Notification permission is disabled in system settings. Please enable it to receive prayer alerts.</string>
 </resources>

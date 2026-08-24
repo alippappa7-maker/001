@@ -1,6 +1,8 @@
 package com.example.data.api
 
 import com.example.data.api.model.AlAdhanResponse
+import com.example.data.api.model.toDailyPrayerTimes
+import com.example.domain.model.PrayerTimeConfig
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import org.junit.Assert.assertEquals
@@ -88,5 +90,38 @@ class AlAdhanApiTest {
         assertEquals("01-01-2024", response?.data?.date?.gregorian?.date)
         assertEquals("1445", response?.data?.date?.hijri?.year)
         assertEquals("جُمادى الآخرة", response?.data?.date?.hijri?.month?.ar)
+
+        // Test domain mapping
+        val dailyPrayerTimes = response?.toDailyPrayerTimes(
+            locationAr = "أبو جرين، حلب، سوريا",
+            locationEn = "Abu Jirin, Aleppo, Syria",
+            isStale = false
+        )
+
+        assertNotNull(dailyPrayerTimes)
+        assertEquals("04:30", dailyPrayerTimes?.fajr?.timeStr)
+        assertEquals("05:45", dailyPrayerTimes?.sunrise?.timeStr)
+        assertEquals("12:15", dailyPrayerTimes?.dhuhr?.timeStr)
+        assertEquals("15:45", dailyPrayerTimes?.asr?.timeStr)
+        assertEquals("18:45", dailyPrayerTimes?.maghrib?.timeStr)
+        assertEquals("20:00", dailyPrayerTimes?.isha?.timeStr)
+        assertEquals("أبو جرين، حلب، سوريا", dailyPrayerTimes?.locationNameAr)
+        assertEquals("19 جُمادى الآخرة 1445 هـ", dailyPrayerTimes?.hijriDateStr)
+    }
+
+    @Test
+    fun testPrayerConfigTuneString() {
+        val config = PrayerTimeConfig(
+            fajrAdjustment = 2,
+            sunriseAdjustment = 0,
+            dhuhrAdjustment = -1,
+            asrAdjustment = 3,
+            maghribAdjustment = 1,
+            ishaAdjustment = -2
+        )
+
+        val tune = config.toTuneString()
+        assertEquals("0,2,0,-1,3,0,1,-2,0", tune)
     }
 }
+

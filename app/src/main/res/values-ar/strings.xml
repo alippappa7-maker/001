@@ -110,7 +110,7 @@
     <string name="journey_steps_count">5 / 7</string>
     <string name="journey_demo_notice">ملاحظة: البيانات المعروضة تجريبية في هذه المرحلة لأغراض الاستعراض</string>
 
-    <!-- Profile Screen -->
+    <!-- Profile & Firebase Auth -->
     <string name="profile_guest_name">ضيف قبس</string>
     <string name="profile_guest_bio">مستكشف في رحلة السكينة</string>
     <string name="profile_stat_journeys">الرحلات</string>
@@ -120,13 +120,70 @@
     <string name="profile_stat_level">المستوى</string>
     <string name="profile_stat_level_val">مستمر</string>
     <string name="profile_login_btn">تسجيل الدخول / إنشاء حساب</string>
-    <string name="profile_login_notice">ستتم إضافة نظام الحسابات والمزامنة لاحقًا</string>
+    <string name="profile_login_notice">سجل الدخول لحفظ ومزامنة وردك ورحلتك سحابيًا بأمان</string>
     <string name="profile_quick_settings_title">الإعدادات السريعة</string>
 
+    <string name="auth_title">الحساب والمزامنة السحابية</string>
+    <string name="auth_login_tab">تسجيل الدخول</string>
+    <string name="auth_register_tab">حساب جديد</string>
+    <string name="auth_email_hint">البريد الإلكتروني</string>
+    <string name="auth_password_hint">كلمة المرور</string>
+    <string name="auth_name_hint">الاسم الكامل (اختياري)</string>
+    <string name="auth_submit_login">دخول</string>
+    <string name="auth_submit_register">إنشاء الحساب</string>
+    <string name="auth_google_sign_in">المتابعة عبر Google</string>
+    <string name="auth_guest_continue">المتابعة كضيف</string>
+    <string name="auth_guest_badge">وضع الضيف • حفظ محلي فقط</string>
+    <string name="auth_logged_in_as">مسجل باسم</string>
+    <string name="auth_logout">تسجيل الخروج</string>
+    <string name="auth_delete_account">حذف الحساب</string>
+    <string name="auth_delete_confirm_title">حذف الحساب نهائيًا؟</string>
+    <string name="auth_delete_confirm_desc">سيؤدي هذا الإجراء إلى حذف حسابك نهائيًا ومسح بياناتك السحابية. ستبقى البيانات المحلية محفوظة على هذا الجهاز.</string>
+    <string name="auth_delete_btn">تأكيد الحذف النهائي</string>
+    <string name="auth_sync_now">مزامنة البيانات السحابية</string>
+    <string name="auth_syncing">جاري مزامنة البيانات مع السحابة...</string>
+    <string name="auth_synced_success">تمت مزامنة البيانات بنجاح</string>
+    <string name="auth_sync_error">تعذرت المزامنة السحابية. تم الاحتفاظ بالبيانات محليًا.</string>
+    <string name="auth_sync_status_label">حالة المزامنة السحابية</string>
+    <string name="auth_sync_status_connected">متصل ومتزامن مع السحابة</string>
+    <string name="auth_sync_status_offline">غير متصل • محفوظ محليًا</string>
+    <string name="auth_error_invalid_email">يرجى إدخال بريد إلكتروني صالح</string>
+    <string name="auth_error_short_password">يجب أن تكون كلمة المرور 6 أحرف على الأقل</string>
+    <string name="auth_error_generic">حدث خطأ أثناء تسجيل الدخول. يرجى المحاولة لاحقًا.</string>
+    <string name="auth_error_network">لا يوجد اتصال بالإنترنت. تم حفظ البيانات محليًا.</string>
+    <string name="auth_firebase_setup_notice">الوضع المحلي نشط • أضف google-services.json لتفعيل المزامنة المباشرة</string>
+
     <!-- Companion Screen -->
-    <string name="feature_companion_title">الرفيق الذكي</string>
-    <string name="feature_companion_desc">مساعدك في رحلة التعلم</string>
-    <string name="feature_companion_later">الرفيق الذكي قادم في المرحلة التالية</string>
+    <string name="feature_companion_title">رفيق قبس</string>
+    <string name="feature_companion_desc">مساعدك التعليمي والروحي</string>
+    <string name="feature_companion_later">رفيق قبس جاهز لمساعدتك في رحلتك المعرفية</string>
+    <string name="companion_disclaimer">تنبيه: الرفيق الذكي أداة تعليمية، ولا يغني عن سؤال أهل العلم والاختصاص.</string>
+    <string name="companion_welcome_message">السلام عليكم ورحمة الله وبركاته. أنا رفيق قبس، مساعدك التعليمي والروحي لرحلتك في التأمل والذكر وطلب العلم. كيف أستطيع مساعدتك اليوم؟</string>
+    <string name="companion_input_hint">اسأل رفيق قبس (الحد ٥٠٠ حرف)...</string>
+    <string name="companion_send">إرسال</string>
+    <string name="companion_stop">إيقاف التوليد</string>
+    <string name="companion_retry">إعادة المحاولة</string>
+    <string name="companion_clear">مسح المحادثة</string>
+    <string name="companion_clear_confirm_title">مسح سجل المحادثة؟</string>
+    <string name="companion_clear_confirm_desc">سيتم مسح جميع الرسائل الحالية من الشاشة.</string>
+    <string name="companion_save_history_title">حفظ سجل المحادثة محليًا</string>
+    <string name="companion_save_history_desc">لا يتم حفظ محادثاتك محليًا إلا بعد تفعيلك لهذا الخيار بموافقتك.</string>
+    <string name="companion_report_button">إبلاغ</string>
+    <string name="companion_report_dialog_title">الإبلاغ عن الإجابة</string>
+    <string name="companion_report_dialog_desc">شكرًا لك. تم تسجيل ملاحظتك للمساعدة في مراجعة دقة وسلامة المحتوى.</string>
+    <string name="companion_report_dismiss">إغلاق</string>
+    <string name="companion_error_network">لا يوجد اتصال بالإنترنت. يرجى التحقق من الشبكة والمحاولة مجددًا.</string>
+    <string name="companion_error_empty">لم يتم استلام رد، يرجى إعادة صياغة السؤال والمحاولة.</string>
+    <string name="companion_error_rate_limit">تم تجاوز الحد المسموح من الطلبات حاليًا. يرجى الانتظار دقيقة والمحاولة مجددًا.</string>
+    <string name="companion_error_length">تتجاوز الرسالة الحد المسموح به (٥٠٠ حرف).</string>
+    <string name="companion_error_service">خدمة الرفيق الذكي غير متاحة حالياً. يرجى المحاولة لاحقاً.</string>
+    <string name="companion_suggested_prompts_title">مواضيع مقترحة</string>
+    <string name="companion_prompt_1">ما فضل أذكار الصباح والمساء؟</string>
+    <string name="companion_prompt_2">كيف أحافظ على الخشوع والسكينة في الصلاة؟</string>
+    <string name="companion_prompt_3">شاركني خاطرة وتدبراً حول أثر الصدقة الخفية</string>
+    <string name="companion_prompt_4">خطوات لبناء عادة يومية لتدبر القرآن الكريم</string>
+    <string name="companion_model_badge">ذكاء قبس • محرك Gemini</string>
+    <string name="companion_chars_count">%1$d / %2$d</string>
 
     <!-- Bottom Navigation -->
     <string name="bottom_nav_home">الرئيسية</string>
@@ -149,10 +206,77 @@
     <string name="settings_theme_dark_desc">الوضع الداكن المهدئ للبصر والمريح ليلاً</string>
     <string name="settings_theme_light_desc">الوضع الفاتح المشرق والسكين</string>
     
+    <!-- Prayer Times -->
+    <string name="prayer_times_title">مواقيت الصلاة</string>
+    <string name="prayer_fajr">الفجر</string>
+    <string name="prayer_sunrise">الشروق</string>
+    <string name="prayer_dhuhr">الظهر</string>
+    <string name="prayer_asr">العصر</string>
+    <string name="prayer_maghrib">المغرب</string>
+    <string name="prayer_isha">العشاء</string>
+    <string name="prayer_next">الصلاة القادمة</string>
+    <string name="prayer_remaining">الوقت المتبقي</string>
+    <string name="prayer_time_now">حان الآن وقت صلاة</string>
+    <string name="prayer_refresh">تحديث المواقيت</string>
+    <string name="prayer_last_updated">آخر تحديث: %1$s</string>
+    <string name="prayer_offline_notice">الوضع دون اتصال • يتم عرض المواقيت المحفوظة</string>
+    <string name="prayer_stale_warning">المواقيت المعروضة لتاريخ سابق. اضغط تحديث عند توفر الإنترنت.</string>
+    <string name="prayer_fetching">جارٍ جلب مواقيت الصلاة الدقيقة...</string>
+    <string name="prayer_fetch_error">تعذر الاتصال بالخادم. يتم عرض المواقيت المحفوظة محليًا.</string>
+    <string name="prayer_location_default">أبو جرين، محافظة حلب، سوريا</string>
+    <string name="prayer_location_gps">الموقع الحالي (GPS)</string>
+    <string name="prayer_location_mode">مصدر الموقع</string>
+    <string name="prayer_location_auto">تحديد تلقائي (GPS)</string>
+    <string name="prayer_location_manual">اختيار المدينة يدويًا</string>
+    <string name="prayer_select_city">اختر المدينة</string>
+    <string name="prayer_settings_title">إعدادات مواقيت الصلاة</string>
+    <string name="prayer_method_title">طريقة الحساب</string>
+    <string name="prayer_madhab_title">المذهب الفقهي للعصر</string>
+    <string name="prayer_madhab_standard">الجمهور (الشافعي، المالكي، الحنبلي)</string>
+    <string name="prayer_madhab_hanafi">المذهب الحنفي</string>
+    <string name="prayer_timezone_title">المنطقة الزمنية</string>
+    <string name="prayer_adjustments_title">تعديل الدقائق يدويًا</string>
+    <string name="prayer_adjustments_desc">ضبط دقائق إضافية لكل صلاة (+/- دقائق)</string>
+    <string name="prayer_minutes_suffix">%1$d دقيقة</string>
+    <string name="prayer_reset_adjustments">إعادة ضبط التعديلات</string>
+    <string name="prayer_edit_settings">إعدادات المواقيت</string>
+
     <!-- General -->
     <string name="btn_back">رجوع</string>
     <string name="btn_return_home">العودة للرئيسية</string>
     <string name="notifications_title">الإشعارات</string>
     <string name="profile_settings_title">الإعدادات</string>
     <string name="avatar_description">الصورة الشخصية</string>
+
+    <!-- Notification Strings & Channels -->
+    <string name="notif_channel_prayers_name">مواقيت الصلاة</string>
+    <string name="notif_channel_prayers_desc">تنبيهات مواقيت الصلاة في أوقاتها المحددة</string>
+    <string name="notif_channel_dhikr_name">الورد والذكر اليومي</string>
+    <string name="notif_channel_dhikr_desc">تذكير يومي بأذكار الصباح والمساء والورد</string>
+    <string name="notif_prayer_title">حان وقت صلاة %1$s</string>
+    <string name="notif_prayer_body">حان الآن موعد أذان %1$s (%2$s). أقبل على الصلاة بخشوع وسكينة.</string>
+    <string name="notif_dhikr_title">تذكير الورد والذكر اليومي</string>
+    <string name="notif_dhikr_body">سُبْحَانَ اللَّهِ وَبِحَمْدِهِ ، سُبْحَانَ اللَّهِ الْعَظِيمِ. عطّر يومك بذكر الله.</string>
+    <string name="notif_test_title">إشعار تجريبي من قبس</string>
+    <string name="notif_test_body">تعمل إشعارات وتنبيهات التطبيق بشكل سليم.</string>
+    
+    <string name="notif_master_switch">تفعيل جميع الإشعارات</string>
+    <string name="notif_master_switch_desc">استقبال تنبيهات الصلوات والورد اليومي</string>
+    <string name="notif_section_prayers">تنبيهات مواقيت الصلاة</string>
+    <string name="notif_section_prayers_desc">اختر الصلوات التي ترغب بتلقي تنبيه لها</string>
+    <string name="notif_section_dhikr">تذكير الورد والذكر اليومي</string>
+    <string name="notif_section_sound">الصوت والاهتزاز</string>
+    <string name="notif_sound_toggle">تشغيل الصوت</string>
+    <string name="notif_sound_desc">تشغيل نغمة تنبيه صوتية عند موعد الإشعار</string>
+    <string name="notif_vibrate_toggle">الاهتزاز</string>
+    <string name="notif_vibrate_desc">اهتزاز الهاتف عند وصول الإشعار</string>
+    <string name="notif_dhikr_toggle">تذكير الذكر والورد</string>
+    <string name="notif_dhikr_time">وقت التذكير: %1$02d:%2$02d</string>
+    <string name="notif_dhikr_time_label">وقت التذكير</string>
+    <string name="notif_test_button">إرسال إشعار تجريبي</string>
+    <string name="notif_permission_banner_title">تفعيل إشعارات النظام</string>
+    <string name="notif_permission_banner_desc">اسمح لتطبيق قبس بإرسال الإشعارات لتنبيهك بمواقيت الصلاة وأورادك اليومية في وقتها.</string>
+    <string name="notif_permission_btn">منح إذن الإشعارات</string>
+    <string name="notif_permission_granted">الإشعارات مفعلة</string>
+    <string name="notif_permission_denied_hint">إذن الإشعارات معطل في إعدادات النظام. يرجى تفعيله لتصلك تنبيهات الصلاة.</string>
 </resources>

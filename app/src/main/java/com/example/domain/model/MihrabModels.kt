@@ -20,14 +20,6 @@ data class Ayah(
     val ayahNumber: Int
 )
 
-data class PrayerTime(
-    val id: String,
-    val nameAr: String,
-    val nameEn: String,
-    val timeStr: String,
-    val isNext: Boolean = false
-)
-
 data class DailyProgress(
     val completedTasks: Int,
     val totalTasks: Int

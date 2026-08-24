@@ -13,7 +13,7 @@ import com.example.ui.screens.KnowledgeScreen
 import com.example.ui.screens.MihrabScreen
 import com.example.ui.screens.ProfileScreen
 import com.example.ui.screens.SettingsScreen
-import com.example.ui.screens.StudioScreen
+import com.example.ui.screens.studio.StudioHomeScreen
 import com.example.ui.screens.WelcomeScreen
 import com.example.ui.theme.QabasTheme
 import org.junit.Assert.assertEquals

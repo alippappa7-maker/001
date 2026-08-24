@@ -33,7 +33,10 @@ object QabasDimens {
     val Radius10: Dp = 10.dp
     val Radius12: Dp = 12.dp
     val RadiusMedium: Dp = 14.dp
+    val Radius16: Dp = 16.dp
     val RadiusLarge: Dp = 20.dp
+    val Radius20: Dp = 20.dp
+    val Radius24: Dp = 24.dp
     val RadiusXL: Dp = 28.dp
     val RadiusFull: Dp = 999.dp
 

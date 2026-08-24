@@ -10,6 +10,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.ui.screens.*
+import com.example.ui.screens.studio.*
 
 object Routes {
     const val WELCOME = "welcome"
@@ -17,12 +18,16 @@ object Routes {
     const val COMPASS = "compass"
     const val MIHRAB = "mihrab"
     const val STUDIO = "studio"
+    const val STUDIO_CREATE = "studio_create"
+    const val STUDIO_ANALYSIS = "studio_analysis"
+    const val STUDIO_PLAN = "studio_plan"
     const val COMPANION = "companion"
     const val KNOWLEDGE = "knowledge"
     const val IMPACT = "impact"
     const val JOURNEY = "journey"
     const val PROFILE = "profile"
     const val SETTINGS = "settings"
+    const val NOTIFICATIONS = "notifications"
 }
 
 @Composable
@@ -96,7 +101,26 @@ fun AppNavigation(
         }
 
         composable(Routes.STUDIO) {
-            StudioScreen(
+            StudioHomeScreen(
+                navController = navController,
+                onBack = { navController.popBackStack() }
+            )
+        }
+        composable(Routes.STUDIO_CREATE) {
+            CreateVideoProjectScreen(
+                navController = navController,
+                onBack = { navController.popBackStack() }
+            )
+        }
+        composable(Routes.STUDIO_ANALYSIS) {
+            IdeaAnalysisScreen(
+                navController = navController,
+                onBack = { navController.popBackStack() }
+            )
+        }
+        composable(Routes.STUDIO_PLAN) {
+            VideoPlanScreen(
+                navController = navController,
                 onBack = { navController.popBackStack() }
             )
         }
@@ -137,6 +161,15 @@ fun AppNavigation(
 
         composable(Routes.SETTINGS) {
             SettingsScreen(
+                onBack = { navController.popBackStack() },
+                onNavigateToNotifications = {
+                    NavigationManager.navigateSingleTop(navController, Routes.NOTIFICATIONS)
+                }
+            )
+        }
+
+        composable(Routes.NOTIFICATIONS) {
+            NotificationSettingsScreen(
                 onBack = { navController.popBackStack() }
             )
         }

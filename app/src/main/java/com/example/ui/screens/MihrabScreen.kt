@@ -10,9 +10,19 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.CloudOff
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.NotificationsActive
+import androidx.compose.material.icons.filled.Timer
 import com.example.domain.model.DailyPrayerTimes
 
 import androidx.compose.foundation.layout.padding
@@ -220,9 +230,22 @@ fun MihrabScreen(
                     }
 
                     // 3. Prayer Times Card
-                    if (uiState.dailyPrayerTimes != null) {
-                        PrayerTimesCard(prayerTimes = uiState.dailyPrayerTimes?.toList() ?: emptyList(), nextPrayerName = uiState.nextPrayerName, nextPrayerCountdown = uiState.nextPrayerCountdown, isStale = uiState.dailyPrayerTimes?.isStale == true, isFetching = uiState.isFetchingPrayers, onRefresh = { viewModel.refreshPrayerTimes() })
-                    }
+                    PrayerTimesCard(
+                        dailyPrayerTimes = uiState.dailyPrayerTimes,
+                        nextPrayerNameAr = uiState.nextPrayerNameAr,
+                        nextPrayerNameEn = uiState.nextPrayerNameEn,
+                        nextPrayerId = uiState.nextPrayerId,
+                        nextPrayerCountdown = uiState.nextPrayerCountdown,
+                        isFetching = uiState.isFetchingPrayers,
+                        prayerError = uiState.prayerError,
+                        onRefresh = { viewModel.refreshPrayerTimes() },
+                        onOpenNotifications = {
+                            navController?.navigate(Routes.NOTIFICATIONS)
+                        },
+                        onOpenSettings = {
+                            navController?.navigate(Routes.SETTINGS)
+                        }
+                    )
                 }
             }
         }
@@ -362,14 +385,19 @@ private fun ZikrCard(zikr: Zikr, onFavoriteToggle: () -> Unit) {
 
 @Composable
 private fun PrayerTimesCard(
-    prayerTimes: List<PrayerTime>,
-    nextPrayerName: String = "",
-    nextPrayerCountdown: String = "",
-    isStale: Boolean = false,
-    isFetching: Boolean = false,
-    onRefresh: () -> Unit = {}
+    dailyPrayerTimes: DailyPrayerTimes?,
+    nextPrayerNameAr: String,
+    nextPrayerNameEn: String,
+    nextPrayerId: String,
+    nextPrayerCountdown: String,
+    isFetching: Boolean,
+    prayerError: String?,
+    onRefresh: () -> Unit,
+    onOpenNotifications: () -> Unit,
+    onOpenSettings: () -> Unit
 ) {
     val colors = QabasThemeTokens.colors
+
     QabasCard(
         modifier = Modifier
             .fillMaxWidth()
@@ -378,6 +406,7 @@ private fun PrayerTimesCard(
         contentPadding = QabasDimens.Space16
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
+            // Header Row: Title & Action buttons (Refresh + Notifications + Settings)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -391,116 +420,258 @@ private fun PrayerTimesCard(
                         modifier = Modifier.size(24.dp)
                     )
                     Spacer(modifier = Modifier.width(QabasDimens.Space8))
-                    Text(
-                        text = stringResource(id = R.string.feature_mihrab_title),
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                        color = colors.textPrimary
-                    )
+                    Column {
+                        Text(
+                            text = stringResource(id = R.string.prayer_times_title),
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                            color = colors.textPrimary
+                        )
+                        dailyPrayerTimes?.let {
+                            Text(
+                                text = it.locationNameAr,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = colors.gold
+                            )
+                        }
+                    }
                 }
                 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     if (isFetching) {
-                        androidx.compose.material3.CircularProgressIndicator(
-                            modifier = Modifier.size(16.dp),
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
                             color = colors.gold,
                             strokeWidth = 2.dp
                         )
-                        Spacer(modifier = Modifier.width(QabasDimens.Space8))
-                    }
-                    if (isStale) {
-                        Icon(
-                            imageVector = Icons.Default.Warning,
-                            contentDescription = "Stale Data",
-                            tint = androidx.compose.ui.graphics.Color.Red,
-                            modifier = Modifier.size(16.dp)
-                        )
                         Spacer(modifier = Modifier.width(QabasDimens.Space4))
                     }
-                    androidx.compose.material3.IconButton(
+                    IconButton(
                         onClick = onRefresh,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(36.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Default.Refresh,
-                            contentDescription = "Refresh",
+                            contentDescription = stringResource(id = R.string.prayer_refresh),
+                            tint = colors.gold
+                        )
+                    }
+                    IconButton(
+                        onClick = onOpenNotifications,
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.NotificationsActive,
+                            contentDescription = stringResource(id = R.string.notifications_title),
+                            tint = colors.gold
+                        )
+                    }
+                    IconButton(
+                        onClick = onOpenSettings,
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Tune,
+                            contentDescription = stringResource(id = R.string.prayer_edit_settings),
                             tint = colors.textSecondary
                         )
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(QabasDimens.Space16))
+            Spacer(modifier = Modifier.height(QabasDimens.Space12))
 
-            if (nextPrayerName.isNotEmpty()) {
+            // Date & Calendar pill
+            dailyPrayerTimes?.let { times ->
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(QabasDimens.Radius8))
+                        .background(colors.surfaceElevated.copy(alpha = 0.6f))
+                        .padding(horizontal = QabasDimens.Space10, vertical = QabasDimens.Space6),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.CalendarMonth,
+                            contentDescription = null,
+                            tint = colors.gold,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(QabasDimens.Space6))
+                        Text(
+                            text = times.hijriDateStr,
+                            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold),
+                            color = colors.textPrimary
+                        )
+                    }
                     Text(
-                        text = "Next: $nextPrayerName",
-                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                        color = colors.gold
+                        text = times.gregorianDateStr,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = colors.textSecondary
                     )
-                    Text(
-                        text = nextPrayerCountdown,
-                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
-                        color = colors.textPrimary
-                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(QabasDimens.Space12))
+
+            // Next Prayer Banner with Countdown
+            if (nextPrayerNameAr.isNotBlank()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(QabasDimens.Radius12))
+                        .background(colors.gold.copy(alpha = 0.15f))
+                        .border(1.dp, colors.gold.copy(alpha = 0.35f), RoundedCornerShape(QabasDimens.Radius12))
+                        .padding(QabasDimens.Space12)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(
+                                text = stringResource(id = R.string.prayer_next),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = colors.textSecondary
+                            )
+                            Spacer(modifier = Modifier.height(QabasDimens.Space2))
+                            Text(
+                                text = nextPrayerNameAr,
+                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                                color = colors.gold
+                            )
+                        }
+                        
+                        Column(horizontalAlignment = Alignment.End) {
+                            Text(
+                                text = stringResource(id = R.string.prayer_remaining),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = colors.textSecondary
+                            )
+                            Spacer(modifier = Modifier.height(QabasDimens.Space2))
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = Icons.Default.Timer,
+                                    contentDescription = null,
+                                    tint = colors.gold,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(QabasDimens.Space4))
+                                Text(
+                                    text = nextPrayerCountdown,
+                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                                    color = colors.textPrimary
+                                )
+                            }
+                        }
+                    }
                 }
                 Spacer(modifier = Modifier.height(QabasDimens.Space12))
             }
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                prayerTimes.forEach { prayer ->
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text(
-                            text = prayer.nameAr,
-                            style = MaterialTheme.typography.labelMedium,
-                            color = if (prayer.nameAr == nextPrayerName) colors.gold else colors.textSecondary
-                        )
-                        Spacer(modifier = Modifier.height(QabasDimens.Space4))
-                        Text(
-                            text = prayer.timeStr.split(" ")[0],
-                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                            color = if (prayer.nameAr == nextPrayerName) colors.gold else colors.textPrimary
+            // 6 Prayers Grid / Row
+            dailyPrayerTimes?.let { times ->
+                val list = times.toList()
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(QabasDimens.Space4)
+                ) {
+                    list.forEach { prayer ->
+                        val isNext = prayer.nameAr == nextPrayerNameAr || prayer.id == nextPrayerId
+                        PrayerTimeItem(
+                            name = prayer.nameAr,
+                            time = prayer.timeStr,
+                            isNext = isNext,
+                            modifier = Modifier.weight(1f)
                         )
                     }
                 }
+            }
+
+            // Stale / Offline Notice Banner
+            if (dailyPrayerTimes?.isStale == true) {
+                Spacer(modifier = Modifier.height(QabasDimens.Space10))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(QabasDimens.Radius8))
+                        .background(colors.surfaceElevated)
+                        .padding(horizontal = QabasDimens.Space8, vertical = QabasDimens.Space6),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Warning,
+                        contentDescription = null,
+                        tint = colors.gold,
+                        modifier = Modifier.size(14.dp)
+                    )
+                    Spacer(modifier = Modifier.width(QabasDimens.Space6))
+                    Text(
+                        text = stringResource(id = R.string.prayer_stale_warning),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = colors.textSecondary
+                    )
+                }
+            }
+
+            // Error or Fetching indicator
+            prayerError?.let { err ->
+                Spacer(modifier = Modifier.height(QabasDimens.Space8))
+                Text(
+                    text = err,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = colors.textSecondary,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
         }
     }
 }
 
 @Composable
-private fun PrayerPill(
-    text: String,
+private fun PrayerTimeItem(
+    name: String,
+    time: String,
     isNext: Boolean,
     modifier: Modifier = Modifier
 ) {
     val colors = QabasThemeTokens.colors
-    val bgColor = if (isNext) colors.gold.copy(alpha = 0.2f) else colors.surfaceElevated
-    val textColor = if (isNext) colors.gold else colors.textPrimary
+    val bgColor = if (isNext) colors.gold.copy(alpha = 0.22f) else colors.surfaceElevated
+    val borderColor = if (isNext) colors.gold.copy(alpha = 0.6f) else androidx.compose.ui.graphics.Color.Transparent
+    val titleColor = if (isNext) colors.gold else colors.textSecondary
+    val timeColor = if (isNext) colors.gold else colors.textPrimary
 
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(QabasDimens.Radius8))
             .background(bgColor)
-            .padding(horizontal = QabasDimens.Space4, vertical = QabasDimens.Space6),
+            .border(1.dp, borderColor, RoundedCornerShape(QabasDimens.Radius8))
+            .padding(vertical = QabasDimens.Space8, horizontal = QabasDimens.Space2),
         contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium),
-            color = textColor,
-            textAlign = TextAlign.Center,
-            maxLines = 1
-        )
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = name,
+                style = MaterialTheme.typography.labelSmall.copy(fontWeight = if (isNext) FontWeight.Bold else FontWeight.Medium),
+                color = titleColor,
+                textAlign = TextAlign.Center,
+                maxLines = 1
+            )
+            Spacer(modifier = Modifier.height(QabasDimens.Space4))
+            Text(
+                text = time,
+                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+                color = timeColor,
+                textAlign = TextAlign.Center,
+                maxLines = 1
+            )
+        }
     }
 }
+

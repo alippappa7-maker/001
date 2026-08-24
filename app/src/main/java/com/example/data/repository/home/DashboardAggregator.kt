@@ -6,6 +6,9 @@ import com.example.data.repository.StudioRepository
 import com.example.domain.model.content.ContentCategory
 import com.example.domain.model.content.ContentItem
 import com.example.domain.model.content.ContentType
+import com.example.domain.model.Ayah
+import com.example.domain.model.DailyPrayerTimes
+import com.example.domain.model.DailyProgress
 import com.example.domain.model.home.CompassStateStatus
 import com.example.domain.model.home.DailyJourneyState
 import com.example.domain.model.home.DashboardState
@@ -28,13 +31,15 @@ class DashboardAggregator(
     fun getDashboardState(): Flow<DashboardState> {
         val studioFlow = studioRepository.getAllProjects().catch { emit(emptyList()) }
         val contentFlow = contentRepository.observePublishedContent().catch { emit(emptyList()) }
-        val prayerFlow = prayerTimeRepository.getCachedPrayerTimes().catch { emit(null) }
-        val dailyProgressFlow: Flow<com.example.domain.model.DailyProgress?> = mihrabRepository.getDailyProgress()
-            .map { it as com.example.domain.model.DailyProgress? }
+        val prayerFlow: Flow<DailyPrayerTimes?> = prayerTimeRepository.getCachedPrayerTimes()
             .catch { emit(null) }
-            
-        val dailyAyahFlow: Flow<com.example.domain.model.Ayah?> = mihrabRepository.getDailyAyah()
-            .map { it as com.example.domain.model.Ayah? }
+
+        val dailyProgressFlow: Flow<DailyProgress?> = mihrabRepository.getDailyProgress()
+            .map { it }
+            .catch { emit(null) }
+
+        val dailyAyahFlow: Flow<Ayah?> = mihrabRepository.getDailyAyah()
+            .map { it }
             .catch { emit(null) }
         
         return combine(

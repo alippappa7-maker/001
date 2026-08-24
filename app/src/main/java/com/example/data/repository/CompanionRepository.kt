@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.example.BuildConfig
+import com.example.data.local.SettingsRepository
 import com.example.data.local.dataStore
 import com.example.domain.model.CompanionConfig
 import com.example.domain.model.CompanionMessage
@@ -17,6 +18,7 @@ import com.squareup.moshi.Types
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
@@ -50,6 +52,7 @@ class CompanionRepositoryImpl(
 ) : CompanionRepository {
 
     private val dataStore = context.dataStore
+    private val settingsRepository = SettingsRepository(context)
     private val requestTimestamps = ConcurrentLinkedQueue<Long>()
 
     private val moshi: Moshi = Moshi.Builder()
@@ -164,26 +167,43 @@ class CompanionRepositoryImpl(
         }
         requestTimestamps.add(now)
 
-        // 3. Prepare system prompt & contextual history
+        // 3. Check if developer has disabled AI services (Master switch)
+        val isAiEnabled = settingsRepository.devAiServicesEnabledFlow.first()
+        if (!isAiEnabled) {
+            val disabledNotice = if (language == "en") {
+                "AI services are temporarily paused by the developer/administrator. Offline knowledge base remains active."
+            } else {
+                "خدمات الذكاء الاصطناعي متوقفة مؤقتاً من قِبل مطور التطبيق. يمكنك الاستفادة من قاعدة المعرفة المحلية."
+            }
+            return@withContext Result.success(disabledNotice)
+        }
+
+        // 4. Prepare system prompt & contextual history
         val systemPrompt = buildSystemInstruction(language)
         val contextHistory = history.takeLast(config.maxHistoryTurns)
 
-        // 4. Try Direct Gemini REST API if key is present or Firebase AI
-        val apiKey = try {
-            val field = BuildConfig::class.java.getField("GEMINI_API_KEY")
-            field.get(null) as? String ?: ""
-        } catch (e: Exception) {
-            ""
+        // 5. Try Direct Gemini REST API (Check developer custom key first, then BuildConfig)
+        val devCustomKey = settingsRepository.devCustomGeminiApiKeyFlow.first()
+        val devModel = settingsRepository.devGeminiModelFlow.first().ifBlank { config.modelName }
+        val apiKey = if (devCustomKey.isNotBlank()) {
+            devCustomKey
+        } else {
+            try {
+                val field = BuildConfig::class.java.getField("GEMINI_API_KEY")
+                field.get(null) as? String ?: ""
+            } catch (e: Exception) {
+                ""
+            }
         }
 
         if (apiKey.isNotBlank()) {
-            val restResult = executeGeminiRestCall(apiKey, trimmedPrompt, contextHistory, systemPrompt)
+            val restResult = executeGeminiRestCall(apiKey, trimmedPrompt, contextHistory, systemPrompt, devModel)
             if (restResult.isSuccess) {
                 return@withContext restResult
             }
         }
 
-        // 5. Educational and Spiritual Fallback Engine (Offline-Safe / Demo Guard)
+        // 6. Educational and Spiritual Fallback Engine (Offline-Safe / Demo Guard)
         val fallbackResponse = generateSafeKnowledgeResponse(trimmedPrompt, language)
         Result.success(fallbackResponse)
     }
@@ -211,10 +231,11 @@ class CompanionRepositoryImpl(
         apiKey: String,
         userPrompt: String,
         history: List<CompanionMessage>,
-        systemInstruction: String
+        systemInstruction: String,
+        modelName: String = config.modelName
     ): Result<String> {
         return try {
-            val model = config.modelName
+            val model = modelName.ifBlank { config.modelName }
             val url = "https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$apiKey"
 
             val contentsArray = JSONArray()

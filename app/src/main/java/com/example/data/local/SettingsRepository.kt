@@ -61,6 +61,41 @@ class SettingsRepository(private val context: Context) {
         val NOTIF_DHIKR_MINUTE = intPreferencesKey("notif_dhikr_minute")
         val NOTIF_SOUND_ENABLED = booleanPreferencesKey("notif_sound_enabled")
         val NOTIF_VIBRATE_ENABLED = booleanPreferencesKey("notif_vibrate_enabled")
+
+        // Developer and API Control keys
+        val DEV_CUSTOM_GEMINI_API_KEY = stringPreferencesKey("dev_custom_gemini_api_key")
+        val DEV_AI_SERVICES_ENABLED = booleanPreferencesKey("dev_ai_services_enabled")
+        val DEV_GEMINI_MODEL = stringPreferencesKey("dev_gemini_model")
+    }
+
+    val devCustomGeminiApiKeyFlow: Flow<String> = dataStore.data.map { preferences ->
+        preferences[DEV_CUSTOM_GEMINI_API_KEY] ?: ""
+    }
+
+    val devAiServicesEnabledFlow: Flow<Boolean> = dataStore.data.map { preferences ->
+        preferences[DEV_AI_SERVICES_ENABLED] ?: true
+    }
+
+    val devGeminiModelFlow: Flow<String> = dataStore.data.map { preferences ->
+        preferences[DEV_GEMINI_MODEL] ?: "gemini-1.5-flash"
+    }
+
+    suspend fun saveDevCustomGeminiApiKey(key: String) {
+        dataStore.edit { prefs ->
+            prefs[DEV_CUSTOM_GEMINI_API_KEY] = key.trim()
+        }
+    }
+
+    suspend fun setDevAiServicesEnabled(enabled: Boolean) {
+        dataStore.edit { prefs ->
+            prefs[DEV_AI_SERVICES_ENABLED] = enabled
+        }
+    }
+
+    suspend fun saveDevGeminiModel(model: String) {
+        dataStore.edit { prefs ->
+            prefs[DEV_GEMINI_MODEL] = model.trim()
+        }
     }
 
     val isDarkModeFlow: Flow<Boolean?> = dataStore.data.map { preferences ->

@@ -240,11 +240,12 @@ fun AppNavigation(
             
             if (user != null && (user.role == com.example.domain.model.UserRole.DEVELOPER || user.role == com.example.domain.model.UserRole.SUPER_ADMIN)) {
                 val adminRepo = remember { com.example.data.repository.AdminRepositoryImpl(context) }
+                val settingsRepo = remember { com.example.data.local.SettingsRepository(context) }
                 val adminViewModel: com.example.ui.screens.admin.DeveloperDashboardViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
                     factory = object : androidx.lifecycle.ViewModelProvider.Factory {
                         override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
                             @Suppress("UNCHECKED_CAST")
-                            return com.example.ui.screens.admin.DeveloperDashboardViewModel(adminRepo, user.uid, user.role) as T
+                            return com.example.ui.screens.admin.DeveloperDashboardViewModel(adminRepo, settingsRepo, user.uid, user.role) as T
                         }
                     }
                 )

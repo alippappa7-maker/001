@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalViewModelStoreOwner
+import androidx.lifecycle.ViewModelProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -41,12 +43,21 @@ object Routes {
 
 
 @Composable
+private fun rememberStudioViewModel(): StudioViewModel {
+    val owner = checkNotNull(LocalViewModelStoreOwner.current) {
+        "A ViewModelStoreOwner is required for StudioViewModel"
+    }
+
+    return remember(owner) {
+        ViewModelProvider(owner)[StudioViewModel::class.java]
+    }
+}
+
+@Composable
 fun AppNavigation(
     navController: NavHostController,
     startDestination: String
 ) {
-    val studioViewModel: StudioViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
-
     NavHost(
         navController = navController,
         startDestination = startDestination,
@@ -113,6 +124,7 @@ fun AppNavigation(
         }
 
         composable(Routes.STUDIO) {
+            val studioViewModel = rememberStudioViewModel()
             StudioHomeScreen(
                 navController = navController,
                 onBack = { navController.popBackStack() },
@@ -120,6 +132,7 @@ fun AppNavigation(
             )
         }
         composable(Routes.STUDIO_CREATE) {
+            val studioViewModel = rememberStudioViewModel()
             CreateVideoProjectScreen(
                 navController = navController,
                 onBack = { navController.popBackStack() },
@@ -127,6 +140,7 @@ fun AppNavigation(
             )
         }
         composable(Routes.STUDIO_ANALYSIS) {
+            val studioViewModel = rememberStudioViewModel()
             IdeaAnalysisScreen(
                 navController = navController,
                 onBack = { navController.popBackStack() },
@@ -134,6 +148,7 @@ fun AppNavigation(
             )
         }
         composable(Routes.STUDIO_PLAN) {
+            val studioViewModel = rememberStudioViewModel()
             VideoPlanScreen(
                 navController = navController,
                 onBack = { navController.popBackStack() },
@@ -141,6 +156,7 @@ fun AppNavigation(
             )
         }
         composable(Routes.STUDIO_STATUS) {
+            val studioViewModel = rememberStudioViewModel()
             GenerationStatusScreen(
                 navController = navController,
                 onBack = { navController.popBackStack() },
@@ -148,6 +164,7 @@ fun AppNavigation(
             )
         }
         composable(Routes.STUDIO_PREVIEW) {
+            val studioViewModel = rememberStudioViewModel()
             VideoPreviewScreen(
                 navController = navController,
                 onBack = { navController.popBackStack() },
@@ -155,6 +172,7 @@ fun AppNavigation(
             )
         }
         composable(Routes.STUDIO_EDITOR) {
+            val studioViewModel = rememberStudioViewModel()
             VideoEditorScreen(
                 navController = navController,
                 onBack = { navController.popBackStack() },

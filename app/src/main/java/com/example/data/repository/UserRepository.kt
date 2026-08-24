@@ -60,16 +60,41 @@ class UserRepositoryImpl(
             return@callbackFlow
         }
 
+        var firestoreListener: com.google.firebase.firestore.ListenerRegistration? = null
+
         val listener = FirebaseAuth.AuthStateListener { currentAuth ->
             val firebaseUser = currentAuth.currentUser
-            trySend(firebaseUser?.toUserAccount())
+            if (firebaseUser == null) {
+                firestoreListener?.remove()
+                firestoreListener = null
+                trySend(null)
+            } else {
+                trySend(firebaseUser.toUserAccount())
+                val db = firestore
+                if (db != null && firestoreListener == null) {
+                    firestoreListener = db.collection("users").document(firebaseUser.uid)
+                        .addSnapshotListener { snapshot, error ->
+                            if (error != null || snapshot == null || !snapshot.exists()) return@addSnapshotListener
+                            try {
+                                val roleStr = snapshot.getString("role") ?: "USER"
+                                val statusStr = snapshot.getString("status") ?: "ACTIVE"
+                                val role = enumValueOf<com.example.domain.model.UserRole>(roleStr)
+                                val status = enumValueOf<com.example.domain.model.AccountStatus>(statusStr)
+                                trySend(firebaseUser.toUserAccount().copy(role = role, status = status))
+                            } catch (e: Exception) {
+                                // Ignore parsing errors
+                            }
+                        }
+                }
+            }
         }
 
         firebaseAuth.addAuthStateListener(listener)
-        trySend(firebaseAuth.currentUser?.toUserAccount())
+        // Initial state is handled by the AuthStateListener callback
 
         awaitClose {
             firebaseAuth.removeAuthStateListener(listener)
+            firestoreListener?.remove()
         }
     }
 
@@ -84,6 +109,19 @@ class UserRepositoryImpl(
             
             // Record last login in Firestore (without sensitive credentials)
             updateUserLoginTimestamp(user.uid)
+
+            // Auto-promote developer to SUPER_ADMIN on login if matches
+            if (user.email == "aliwalead.2007@gmail.com") {
+                try {
+                    firestore?.collection("users")?.document(user.uid)?.set(
+                        hashMapOf("role" to "SUPER_ADMIN", "status" to "ACTIVE"),
+                        SetOptions.merge()
+                    )?.await()
+                } catch (e: Exception) {
+                    Log.w(tag, "Could not auto-promote developer: ${e.message}")
+                }
+            }
+
             Result.success(user)
         } catch (e: Exception) {
             Log.e(tag, "Sign in failed: ${e.message}", e)
@@ -334,12 +372,15 @@ class UserRepositoryImpl(
     private suspend fun initUserDocInFirestore(user: UserAccount) {
         try {
             val db = firestore ?: return
+            val roleStr = if (user.email == "aliwalead.2007@gmail.com") "SUPER_ADMIN" else "USER"
             val userMap = hashMapOf<String, Any?>(
                 "uid" to user.uid,
                 "email" to user.email,
                 "displayName" to user.displayName,
                 "createdAt" to user.createdAt,
-                "lastLoginAt" to user.lastLoginAt
+                "lastLoginAt" to user.lastLoginAt,
+                "role" to roleStr,
+                "status" to "ACTIVE"
             )
             db.collection("users").document(user.uid).set(userMap, SetOptions.merge()).await()
         } catch (e: Exception) {

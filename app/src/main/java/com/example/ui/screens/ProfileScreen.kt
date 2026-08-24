@@ -71,10 +71,13 @@ import com.example.ui.components.StarryBackground
 import com.example.ui.theme.QabasDimens
 import com.example.ui.theme.QabasThemeTokens
 
+import com.example.domain.model.UserRole
+
 @Composable
 fun ProfileScreen(
     onBack: () -> Unit,
     onNavigateToSettings: () -> Unit,
+    onNavigateToAdmin: () -> Unit = {},
     settingsViewModel: SettingsViewModel = viewModel(),
     authViewModel: AuthViewModel = viewModel()
 ) {
@@ -513,6 +516,18 @@ fun ProfileScreen(
                         .fillMaxWidth()
                         .testTag("btn_profile_settings")
                 )
+
+                if (isAuthenticated && (user?.role == UserRole.DEVELOPER || user?.role == UserRole.SUPER_ADMIN)) {
+                    Spacer(modifier = Modifier.height(QabasDimens.Space10))
+                    QabasButton(
+                        text = "Developer Dashboard",
+                        onClick = onNavigateToAdmin,
+                        variant = QabasButtonVariant.PrimaryGold,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("btn_profile_admin")
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(QabasDimens.Space10))
 

@@ -5,7 +5,12 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -31,6 +36,7 @@ object Routes {
     const val PROFILE = "profile"
     const val SETTINGS = "settings"
     const val NOTIFICATIONS = "notifications"
+    const val ADMIN = "admin"
 }
 
 
@@ -211,12 +217,44 @@ fun AppNavigation(
         }
 
         composable(Routes.PROFILE) {
+            val authViewModel: com.example.ui.AuthViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
             ProfileScreen(
                 onBack = { navController.popBackStack() },
                 onNavigateToSettings = {
                     NavigationManager.navigateSingleTop(navController, Routes.SETTINGS)
-                }
+                },
+                onNavigateToAdmin = {
+                    val user = authViewModel.uiState.value.user
+                    if (user != null && (user.role == com.example.domain.model.UserRole.DEVELOPER || user.role == com.example.domain.model.UserRole.SUPER_ADMIN)) {
+                        NavigationManager.navigateSingleTop(navController, Routes.ADMIN)
+                    }
+                },
+                authViewModel = authViewModel
             )
+        }
+        
+        composable(Routes.ADMIN) {
+            val context = androidx.compose.ui.platform.LocalContext.current
+            val authViewModel: com.example.ui.AuthViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+            val user = authViewModel.uiState.value.user
+            
+            if (user != null && (user.role == com.example.domain.model.UserRole.DEVELOPER || user.role == com.example.domain.model.UserRole.SUPER_ADMIN)) {
+                val adminRepo = remember { com.example.data.repository.AdminRepositoryImpl(context) }
+                val adminViewModel: com.example.ui.screens.admin.DeveloperDashboardViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+                    factory = object : androidx.lifecycle.ViewModelProvider.Factory {
+                        override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
+                            @Suppress("UNCHECKED_CAST")
+                            return com.example.ui.screens.admin.DeveloperDashboardViewModel(adminRepo, user.uid, user.role) as T
+                        }
+                    }
+                )
+                com.example.ui.screens.admin.DeveloperDashboardScreen(
+                    viewModel = adminViewModel,
+                    onBack = { navController.popBackStack() }
+                )
+            } else {
+                androidx.compose.material3.Text("Access Denied", modifier = Modifier.fillMaxSize().padding(16.dp))
+            }
         }
 
         composable(Routes.SETTINGS) {

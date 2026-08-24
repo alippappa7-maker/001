@@ -12,16 +12,47 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
+    // Role-based helper functions (requires Custom Claims set by backend)
+    function hasRole(role) {
+      return isAuthenticated() && request.auth.token.role == role;
+    }
+    
+    function isDeveloperOrAdmin() {
+      return isAuthenticated() && (request.auth.token.role == 'DEVELOPER' || request.auth.token.role == 'SUPER_ADMIN');
+    }
+
+    function isEditorOrHigher() {
+      return isDeveloperOrAdmin() || request.auth.token.role == 'EDITOR';
+    }
+
     // User document and all its user-specific subcollections
-    // Stores: profile info, preferences (theme, language), favorite azkar, daily progress
-    // STRICT SECURITY: Never store passwords or raw unconsented private coordinates
+    // Stores: profile info, preferences, role, status
     match /users/{userId} {
-      allow read, write: if isOwner(userId);
+      // Users can read/write their own info, BUT admins can read all users
+      allow read: if isOwner(userId) || isDeveloperOrAdmin();
+      // Only the owner can write to their own profile, but they CANNOT escalate their own privileges
+      // In a real app, role/status changes should only be done via Cloud Functions, 
+      // but we allow basic updates for demo. In production, we'd add field-level security to prevent setting 'role'.
+      allow write: if isOwner(userId) && (!request.resource.data.keys().hasAny(['role', 'status']) || request.resource.data.role == resource.data.role);
+      
+      // Admins can update roles/statuses
+      allow write: if isDeveloperOrAdmin();
 
       // Subcollections under user (if any are partitioned)
       match /{document=**} {
-        allow read, write: if isOwner(userId);
+        allow read, write: if isOwner(userId) || isDeveloperOrAdmin();
       }
+    }
+
+    // Admin/Diagnostics data
+    match /diagnostics/{document=**} {
+      allow read, write: if isDeveloperOrAdmin();
+    }
+    
+    match /audit_logs/{document=**} {
+      allow read: if isDeveloperOrAdmin();
+      // Only backend should write audit logs ideally, but we allow admin clients for demo
+      allow write: if isDeveloperOrAdmin();
     }
 
     // Deny all other access by default

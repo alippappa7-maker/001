@@ -1,11 +1,21 @@
 package com.example.domain.model
 
+enum class UserRole {
+    USER, SUPPORT, EDITOR, DEVELOPER, SUPER_ADMIN
+}
+
+enum class AccountStatus {
+    ACTIVE, FROZEN, BANNED, PENDING_REVIEW
+}
+
 data class UserAccount(
     val uid: String,
     val email: String? = null,
     val displayName: String? = null,
     val photoUrl: String? = null,
     val isAnonymous: Boolean = false,
+    val role: UserRole = UserRole.USER,
+    val status: AccountStatus = AccountStatus.ACTIVE,
     val createdAt: Long = System.currentTimeMillis(),
     val lastLoginAt: Long = System.currentTimeMillis()
 )

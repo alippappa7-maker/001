@@ -38,9 +38,14 @@ class AuthViewModel @JvmOverloads constructor(
     init {
         viewModelScope.launch {
             userRepository.currentUser.collect { user ->
-                _uiState.update { it.copy(user = user, isFirebaseConfigured = userRepository.isFirebaseAvailable) }
+                _uiState.update { 
+                    it.copy(
+                        user = user, 
+                        isFirebaseConfigured = userRepository.isFirebaseAvailable,
+                        syncStatus = if (user == null) SyncStatus.IDLE else it.syncStatus
+                    ) 
+                }
                 if (user != null) {
-                    // Automatically perform background sync when user is authenticated
                     performSync()
                 }
             }
@@ -68,7 +73,6 @@ class AuthViewModel @JvmOverloads constructor(
                         successMessage = "تم تسجيل الدخول بنجاح"
                     )
                 }
-                performSync()
             }.onFailure { exception ->
                 _uiState.update {
                     it.copy(
@@ -101,7 +105,6 @@ class AuthViewModel @JvmOverloads constructor(
                         successMessage = "تم إنشاء الحساب بنجاح"
                     )
                 }
-                performSync()
             }.onFailure { exception ->
                 _uiState.update {
                     it.copy(

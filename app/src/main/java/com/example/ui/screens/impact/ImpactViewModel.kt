@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-class ImpactViewModel(
+class ImpactViewModel @JvmOverloads constructor(
     application: Application,
     private val repository: ContentRepository = LocalContentRepository(application)
 ) : AndroidViewModel(application) {
@@ -56,3 +56,4 @@ class ImpactViewModel(
         }
     }
 }
+

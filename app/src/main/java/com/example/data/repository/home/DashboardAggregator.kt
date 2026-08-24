@@ -36,11 +36,11 @@ class DashboardAggregator(
 
         val dailyProgressFlow: Flow<DailyProgress?> = mihrabRepository.getDailyProgress()
             .map { it }
-            .catch { emit(null as DailyProgress?) }
+            .catch { emit(null) }
 
         val dailyAyahFlow: Flow<Ayah?> = mihrabRepository.getDailyAyah()
             .map { it }
-            .catch { emit(null as Ayah?) }
+            .catch { emit(null) }
         
         return combine(
             studioFlow,

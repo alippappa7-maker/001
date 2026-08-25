@@ -29,4 +29,18 @@ interface StudioDao {
 
     @Query("DELETE FROM video_projects")
     suspend fun deleteAllProjects()
+
+    // --- Style References (بصمات الأسلوب المستخرجة من فيديوهات مرجعية) ---
+
+    @Query("SELECT * FROM style_references ORDER BY createdAt DESC")
+    fun getAllStyleReferences(): Flow<List<StyleReferenceEntity>>
+
+    @Query("SELECT * FROM style_references WHERE id = :id")
+    suspend fun getStyleReferenceById(id: String): StyleReferenceEntity?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertStyleReference(reference: StyleReferenceEntity)
+
+    @Query("DELETE FROM style_references WHERE id = :id")
+    suspend fun deleteStyleReferenceById(id: String)
 }

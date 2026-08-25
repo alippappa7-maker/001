@@ -5,7 +5,10 @@ import com.example.domain.model.studio.EditingStyle
 import com.example.domain.model.studio.FallbackResourceMode
 import com.example.domain.model.studio.VideoProject
 import com.example.domain.service.studio.template.CanvasOrnamentalFrameProvider
+import com.example.domain.service.studio.template.CanvasSunsetBackgroundProvider
 import com.example.domain.service.studio.template.CompositionTemplate
+import com.example.domain.service.studio.template.MovingQuotesTemplate
+import com.example.domain.service.studio.template.NaeemZuhdTemplate
 import com.example.domain.service.studio.template.TadhkirahMawidhaTemplate
 import java.io.File
 
@@ -23,20 +26,31 @@ class Media3VideoRenderService(
     private val storyBuilder: StoryboardBuilder = StoryboardBuilder(),
     private val compositionEngine: StudioCompositionEngine = StudioCompositionEngine(context),
     private val tadhkirahTemplate: CompositionTemplate =
-        TadhkirahMawidhaTemplate(CanvasOrnamentalFrameProvider())
+        TadhkirahMawidhaTemplate(CanvasOrnamentalFrameProvider()),
+    private val naeemTemplate: CompositionTemplate =
+        NaeemZuhdTemplate(CanvasSunsetBackgroundProvider()),
+    private val movingQuotesTemplate: CompositionTemplate = MovingQuotesTemplate()
 ) : VideoRenderService {
 
     /**
-     * يختار مصدر لوحة القصة: قالب "تذكرة وموعظة" عند ضبط النمط التأملي،
+     * يختار مصدر لوحة القصة: قوالب خاصة حسب نمط التحرير (انظر [templateFor])،
      * وإلا المسار العام عبر [StoryboardBuilder]. هذا الربط وحيد ومحصور هنا
      * حتى لا تنتشر تفاصيل القوالب في طبقة العرض.
      */
     private fun resolveStoryboard(project: VideoProject): com.example.domain.model.studio.CompositionStoryboard {
-        return if (project.idea.editingStyle == EditingStyle.MEDITATIVE) {
-            tadhkirahTemplate.build(project)
-        } else {
-            storyBuilder.build(project)
-        }
+        val template = templateFor(project.idea.editingStyle)
+        return template?.build(project) ?: storyBuilder.build(project)
+    }
+
+    /**
+     * يختار القالب بناءً على نمط التحرير: "تأملي" ← تذكرة، "قصصي" ← النعيم والزهد،
+     * "اقتباسات مؤثرة" ← اقتباسات متحركة، وإلا المسار العام عبر [storyBuilder].
+     */
+    private fun templateFor(style: EditingStyle): CompositionTemplate? = when (style) {
+        EditingStyle.MEDITATIVE -> tadhkirahTemplate
+        EditingStyle.STORYTELLING -> naeemTemplate
+        EditingStyle.MOVING_QUOTES -> movingQuotesTemplate
+        else -> null
     }
 
     /**

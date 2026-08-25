@@ -20,6 +20,7 @@ import com.example.domain.model.studio.CompositionScene
 import com.example.domain.model.studio.CompositionStoryboard
 import com.example.domain.model.studio.LayerHorizontalAlignment
 import com.example.domain.model.studio.LayerVerticalAlignment
+import com.example.domain.service.studio.template.AnimatedTextOverlay
 import com.example.domain.model.studio.TextLayer
 import kotlinx.coroutines.suspendCancellableCoroutine
 import java.io.File
@@ -150,12 +151,14 @@ class StudioCompositionEngine(
         val textOverlays = scene.textLayers.map { layer ->
             val bitmap = textRenderer.render(layer, storyboard.width, storyboard.height)
             val (ax, ay) = computeAnchor(layer.alignment, layer.verticalAnchor, layer.yOffsetPercent)
-            val settings = OverlaySettings.Builder()
-                .setOverlayFrameAnchor(0f, 0f)
-                .setBackgroundFrameAnchor(ax, ay)
-                .setAlphaScale(1f)
-                .build()
-            BitmapOverlay.createStaticBitmapOverlay(bitmap, settings)
+            AnimatedTextOverlay(
+                bitmap = bitmap,
+                baseAnchorX = ax,
+                baseAnchorY = ay,
+                animation = layer.animation,
+                animStartMs = layer.animationStartMs,
+                animDurationMs = layer.animationDurationMs
+            )
         }
         val imageOverlays = scene.overlayLayers.map { layer ->
             val (ax, ay) = computeAnchor(layer.alignment, layer.verticalAnchor, layer.yOffsetPercent)

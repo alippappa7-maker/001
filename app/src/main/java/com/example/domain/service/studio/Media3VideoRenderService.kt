@@ -32,6 +32,8 @@ class Media3VideoRenderService(
     private val movingQuotesTemplate: CompositionTemplate = MovingQuotesTemplate()
 ) : VideoRenderService {
 
+    private val quranAdapter by lazy { QuranRecitationExportAdapter(context) }
+
     /**
      * يختار مصدر لوحة القصة: قوالب خاصة حسب نمط التحرير (انظر [templateFor])،
      * وإلا المسار العام عبر [StoryboardBuilder]. هذا الربط وحيد ومحصور هنا
@@ -40,6 +42,20 @@ class Media3VideoRenderService(
     private fun resolveStoryboard(project: VideoProject): com.example.domain.model.studio.CompositionStoryboard {
         val template = templateFor(project.idea.editingStyle)
         return template?.build(project) ?: storyBuilder.build(project)
+    }
+
+    /**
+     * يحل لوحة القصة مع دعم المسار المعلّق: نمط «تلاوة قرآنية» يتطلب بناءً شبكيًا
+     * (خط زمني + تخزين صوت + بوابة شرعية) عبر [QuranRecitationExportAdapter]،
+     * لأنه يعتمد على جلب التلاوة وتخزينها والتحقق منها. بقية الأنماط تستخدم
+     * [resolveStoryboard] المتزامن.
+     */
+    private suspend fun resolveStoryboardSuspend(project: VideoProject): com.example.domain.model.studio.CompositionStoryboard {
+        if (project.idea.editingStyle == EditingStyle.QURAN_RECITATION && project.idea.verseKey.isNotBlank()) {
+            // يرمي استثناءً وصفياً عند أي فشل (شبكة/بوابة شرعية)؛ يلتقطه try/catch الخارجي.
+            return quranAdapter.buildStoryboard(project.idea.verseKey)
+        }
+        return resolveStoryboard(project)
     }
 
     /**
@@ -69,7 +85,7 @@ class Media3VideoRenderService(
 
         // نتحقق أن لوحة القصة قابلة للبناء فعليًا قبل التصدير.
         val storyboard = try {
-            resolveStoryboard(project)
+            resolveStoryboardSuspend(project)
         } catch (t: Throwable) {
             return VideoRenderResult(
                 isSuccess = false,
@@ -97,7 +113,7 @@ class Media3VideoRenderService(
 
     override suspend fun exportVideo(project: VideoProject): VideoExportResult {
         val storyboard = try {
-            resolveStoryboard(project)
+            resolveStoryboardSuspend(project)
         } catch (t: Throwable) {
             return VideoExportResult(
                 isAvailable = true,

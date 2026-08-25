@@ -14,6 +14,7 @@ import android.text.SpannableStringBuilder
 import android.text.StaticLayout
 import android.text.TextPaint
 import android.text.style.ForegroundColorSpan
+import com.example.domain.model.quran.WordVisualState
 import com.example.domain.model.studio.LayerHorizontalAlignment
 import com.example.domain.model.studio.TextLayer
 import kotlin.math.roundToInt
@@ -169,6 +170,87 @@ class TextBitmapRenderer(private val context: Context) {
         canvas.drawColor(0, PorterDuff.Mode.CLEAR)
 
         // ظل خفيف خلف النص لزيادة الوضوح فوق الخلفيات المتنوعة.
+        textPaint.setShadowLayer(
+            textSizePx * 0.12f, 0f, textSizePx * 0.08f, 0x80000000.toInt()
+        )
+        layout.draw(canvas)
+
+        return bitmap
+    }
+
+    /**
+     * يرسم الآية بتظليل متعدد الطبقات وفق [WordVisualState] — جوهر "وضع قبس الذكي":
+     * الكلمة النشطة ذهبية مع توهّج، وبقية كلمات العبارة الحالية أوضح، وما خارجها
+     * أخفّ بصريًا. يُستخدم من [SmartAyahOverlay] لتوليد Bitmap لكل حالة نشطة
+     * ممكنة، فتُرسم الطبقات فعليًا داخل الفيديو المُصدَّر (وليس فقط في الواجهة).
+     *
+     * @param words نصوص الكلمات بالترتيب.
+     * @param states الحالة البصرية لكل كلمة (نفس طول [words]).
+     * @param videoWidth عرض الفيديو.
+     * @param videoHeight ارتفاع الفيديو.
+     * @param fontSizeSp حجم الخط.
+     * @param activeColorArgb لون الكلمة النشطة (ذهبي).
+     * @param currentColorArgb لون كلمات العبارة الحالية.
+     * @param pastColorArgb لون الكلمات السابقة/الخارجية (أخفّ).
+     */
+    fun renderMultiLayer(
+        words: List<String>,
+        states: List<WordVisualState>,
+        videoWidth: Int,
+        videoHeight: Int,
+        fontSizeSp: Int = 44,
+        activeColorArgb: Int = 0xFFE6B800.toInt(),
+        currentColorArgb: Int = 0xFFE8E0D0.toInt(),
+        pastColorArgb: Int = 0xFF7A7268.toInt()
+    ): Bitmap {
+        require(words.size == states.size) { "words and states must have same size" }
+        require(words.isNotEmpty()) { "words must not be empty" }
+
+        val density = context.resources.displayMetrics.density
+        val textSizePx = (fontSizeSp * density).roundToInt().toFloat()
+
+        val textPaint = TextPaint(Paint.ANTI_ALIAS_FLAG or Paint.SUBPIXEL_TEXT_FLAG).apply {
+            color = currentColorArgb
+            textSize = textSizePx
+            typeface = defaultTypeface
+            textAlign = Paint.Align.CENTER
+        }
+
+        val maxTextWidthPx = (videoWidth * 0.84f).roundToInt().coerceAtLeast(1)
+
+        // بناء SpannableStringBuilder كلمة بكلمة مع تلوين كل كلمة حسب حالتها البصرية.
+        val spannable = SpannableStringBuilder()
+        for (i in words.indices) {
+            if (i > 0) spannable.append(" ")
+            val start = spannable.length
+            spannable.append(words[i])
+            val color = when (states[i]) {
+                WordVisualState.ACTIVE -> activeColorArgb
+                WordVisualState.CURRENT -> currentColorArgb
+                WordVisualState.PAST -> pastColorArgb
+            }
+            spannable.setSpan(
+                ForegroundColorSpan(color),
+                start, spannable.length,
+                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+        }
+
+        val layout = StaticLayout.Builder.obtain(
+            spannable, 0, spannable.length, textPaint, maxTextWidthPx
+        )
+            .setAlignment(Layout.Alignment.ALIGN_CENTER)
+            .setIncludePad(true)
+            .setLineSpacing(0f, 1.15f)
+            .build()
+
+        val bitmapWidth = layout.width.coerceAtLeast(1)
+        val bitmapHeight = layout.height.coerceAtLeast(1)
+
+        val bitmap = Bitmap.createBitmap(bitmapWidth, bitmapHeight, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        canvas.drawColor(0, PorterDuff.Mode.CLEAR)
+
         textPaint.setShadowLayer(
             textSizePx * 0.12f, 0f, textSizePx * 0.08f, 0x80000000.toInt()
         )

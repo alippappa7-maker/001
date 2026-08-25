@@ -69,7 +69,8 @@ enum class EditingStyle(val titleAr: String, val titleEn: String) {
     FAST_REELS("ريلز سريع", "Fast Reels"),
     SHORT_AD("إعلان قصير", "Short Ad"),
     ANIMATION("رسوم متحركة", "Animation"),
-    MOVING_QUOTES("اقتباسات مؤثرة", "Moving Quotes")
+    MOVING_QUOTES("اقتباسات مؤثرة", "Moving Quotes"),
+    QURAN_RECITATION("تلاوة قرآنية", "Quran Recitation")
 }
 
 enum class AssetType(val titleAr: String, val titleEn: String) {
@@ -191,7 +192,8 @@ data class VideoIdea(
     val editingStyle: EditingStyle = EditingStyle.CINEMATIC,
     val hasVoiceover: Boolean = true,
     val hasOnScreenText: Boolean = true,
-    val hasMusicOrEffects: Boolean = true
+    val hasMusicOrEffects: Boolean = true,
+    val verseKey: String = ""
 )
 
 @JsonClass(generateAdapter = true)

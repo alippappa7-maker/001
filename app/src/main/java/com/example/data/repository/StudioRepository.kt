@@ -3,10 +3,12 @@ package com.example.data.repository
 import android.app.Application
 import com.example.data.local.AppDatabase
 import com.example.data.local.studio.StudioDao
+import com.example.data.local.studio.StyleReferenceEntity
 import com.example.data.local.studio.VideoProjectEntity
 import com.example.domain.model.studio.FallbackResourceMode
 import com.example.domain.model.studio.GenerationStage
 import com.example.domain.model.studio.LicensedAsset
+import com.example.domain.model.studio.StyleSignature
 import com.example.domain.model.studio.VideoAsset
 import com.example.domain.model.studio.VideoGenerationJob
 import com.example.domain.model.studio.VideoIdea
@@ -26,6 +28,11 @@ interface StudioRepository {
     suspend fun getProjectById(id: String): VideoProject?
     suspend fun saveProject(project: VideoProject)
     suspend fun deleteProject(id: String)
+
+    fun getAllStyleReferences(): Flow<List<StyleSignature>>
+    suspend fun getStyleReferenceById(id: String): StyleSignature?
+    suspend fun saveStyleReference(signature: StyleSignature)
+    suspend fun deleteStyleReference(id: String)
 }
 
 class StudioRepositoryImpl(private val application: Application) : StudioRepository {
@@ -44,6 +51,7 @@ class StudioRepositoryImpl(private val application: Application) : StudioReposit
     private val licensedAssetListAdapter = moshi.adapter<List<LicensedAsset>>(
         Types.newParameterizedType(List::class.java, LicensedAsset::class.java)
     )
+    private val styleSignatureAdapter = moshi.adapter(StyleSignature::class.java)
 
     override fun getAllProjects(): Flow<List<VideoProject>> {
         return studioDao.getAllProjects().map { entities ->
@@ -61,6 +69,44 @@ class StudioRepositoryImpl(private val application: Application) : StudioReposit
 
     override suspend fun deleteProject(id: String) {
         studioDao.deleteProjectById(id)
+    }
+
+    // --- Style References ---
+
+    override fun getAllStyleReferences(): Flow<List<StyleSignature>> {
+        return studioDao.getAllStyleReferences().map { entities ->
+            entities.mapNotNull { entity ->
+                try {
+                    styleSignatureAdapter.fromJson(entity.signatureJson)
+                } catch (_: Exception) {
+                    null
+                }
+            }
+        }
+    }
+
+    override suspend fun getStyleReferenceById(id: String): StyleSignature? {
+        val entity = studioDao.getStyleReferenceById(id) ?: return null
+        return try {
+            styleSignatureAdapter.fromJson(entity.signatureJson)
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    override suspend fun saveStyleReference(signature: StyleSignature) {
+        studioDao.insertStyleReference(
+            StyleReferenceEntity(
+                id = signature.id,
+                sourceLabel = signature.sourceLabel,
+                signatureJson = styleSignatureAdapter.toJson(signature),
+                createdAt = signature.createdAt
+            )
+        )
+    }
+
+    override suspend fun deleteStyleReference(id: String) {
+        studioDao.deleteStyleReferenceById(id)
     }
 
     private fun VideoProjectEntity.toDomainModel(): VideoProject {

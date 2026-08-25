@@ -123,12 +123,12 @@ class StudioCompositionEngine(
     }
 
     /**
-     * يكتب Bitmap إلى ملف PNG مؤقت في cacheDir ويعيد مساره كنص.
+     * يكتب Bitmap إلى ملف PNG مؤقت في cacheDir ويعيد مساره كـ URI صالح (file://).
      */
     private fun writeBitmapToCache(bitmap: Bitmap, sceneId: String): String {
         val tempFile = File(context.cacheDir, "bg_img_$sceneId.png")
         tempFile.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
-        return tempFile.absolutePath
+        return Uri.fromFile(tempFile).toString()
     }
 
     /**
@@ -166,7 +166,8 @@ class StudioCompositionEngine(
                 .build()
             BitmapOverlay.createStaticBitmapOverlay(layer.bitmap, settings)
         }
-        return textOverlays + imageOverlays
+        // الإطار الزخرفي (صورة) أولاً ثم النص فوقه، حتى يكون المندلة خلف الآية لا أمامها.
+        return imageOverlays + textOverlays
     }
 
     /**

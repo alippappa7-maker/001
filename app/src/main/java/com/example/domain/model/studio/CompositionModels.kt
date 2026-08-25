@@ -91,7 +91,7 @@ data class BackgroundLayer(
 ) {
     fun isUsable(): Boolean = when (type) {
         BackgroundType.SOLID_COLOR -> true
-        BackgroundType.IMAGE -> staticImage != null
+        BackgroundType.IMAGE -> staticImage != null || !videoUri.isNullOrBlank()
         BackgroundType.VIDEO -> !videoUri.isNullOrBlank()
     }
 }

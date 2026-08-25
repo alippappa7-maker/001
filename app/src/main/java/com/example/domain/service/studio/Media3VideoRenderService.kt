@@ -1,8 +1,12 @@
 package com.example.domain.service.studio
 
 import android.content.Context
+import com.example.domain.model.studio.EditingStyle
 import com.example.domain.model.studio.FallbackResourceMode
 import com.example.domain.model.studio.VideoProject
+import com.example.domain.service.studio.template.CanvasOrnamentalFrameProvider
+import com.example.domain.service.studio.template.CompositionTemplate
+import com.example.domain.service.studio.template.TadhkirahMawidhaTemplate
 import java.io.File
 
 /**
@@ -17,8 +21,23 @@ import java.io.File
 class Media3VideoRenderService(
     private val context: Context,
     private val storyBuilder: StoryboardBuilder = StoryboardBuilder(),
-    private val compositionEngine: StudioCompositionEngine = StudioCompositionEngine(context)
+    private val compositionEngine: StudioCompositionEngine = StudioCompositionEngine(context),
+    private val tadhkirahTemplate: CompositionTemplate =
+        TadhkirahMawidhaTemplate(CanvasOrnamentalFrameProvider())
 ) : VideoRenderService {
+
+    /**
+     * يختار مصدر لوحة القصة: قالب "تذكرة وموعظة" عند ضبط النمط التأملي،
+     * وإلا المسار العام عبر [StoryboardBuilder]. هذا الربط وحيد ومحصور هنا
+     * حتى لا تنتشر تفاصيل القوالب في طبقة العرض.
+     */
+    private fun resolveStoryboard(project: VideoProject): com.example.domain.model.studio.CompositionStoryboard {
+        return if (project.idea.editingStyle == EditingStyle.MEDITATIVE) {
+            tadhkirahTemplate.build(project)
+        } else {
+            storyBuilder.build(project)
+        }
+    }
 
     /**
      * مجلد الإخراج الافتراضي ضمن مساحة التطبيق الداخلية (لا يتطلب صلاحية تخزين).
@@ -36,7 +55,7 @@ class Media3VideoRenderService(
 
         // نتحقق أن لوحة القصة قابلة للبناء فعليًا قبل التصدير.
         val storyboard = try {
-            storyBuilder.build(project)
+            resolveStoryboard(project)
         } catch (t: Throwable) {
             return VideoRenderResult(
                 isSuccess = false,
@@ -64,7 +83,7 @@ class Media3VideoRenderService(
 
     override suspend fun exportVideo(project: VideoProject): VideoExportResult {
         val storyboard = try {
-            storyBuilder.build(project)
+            resolveStoryboard(project)
         } catch (t: Throwable) {
             return VideoExportResult(
                 isAvailable = true,

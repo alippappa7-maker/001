@@ -5,9 +5,11 @@ import android.graphics.Bitmap
 import android.net.Uri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
-import androidx.media3.common.OverlaySettings
 import androidx.media3.effect.BitmapOverlay
 import androidx.media3.effect.OverlayEffect
+import androidx.media3.effect.OverlaySettings
+import androidx.media3.effect.TextureOverlay
+import com.google.common.collect.ImmutableList
 import androidx.media3.transformer.Composition
 import androidx.media3.transformer.EditedMediaItem
 import androidx.media3.transformer.EditedMediaItemSequence
@@ -38,7 +40,7 @@ import kotlin.coroutines.resumeWithException
  *
  * حزم Media3 المستخدمة (وفق التوثيق الرسمي):
  *  - androidx.media3.effect.BitmapOverlay / OverlayEffect
- *  - androidx.media3.common.OverlaySettings
+ *  - androidx.media3.effect.OverlaySettings
  *  - androidx.media3.transformer.* (Transformer, Composition, EditedMediaItem, Effects)
  *
  * التموضع: OverlaySettings.Builder يأخذ:
@@ -72,10 +74,8 @@ class StudioCompositionEngine(
         val editedItems = storyboard.scenes.map { scene ->
             buildEditedMediaItem(scene, storyboard)
         }
-        // الشكل الموثّق في Media3: نغلّف العناصر داخل تسلسل (EditedMediaItemSequence).
-        val sequence = EditedMediaItemSequence.Builder().apply {
-            editedItems.forEach { addItem(it) }
-        }.build()
+        // في Media3 1.4.1 لا يوجد EditedMediaItemSequence.Builder؛ يُمرّر List مباشرةً.
+        val sequence = EditedMediaItemSequence(editedItems)
         val composition = Composition.Builder(sequence).build()
 
         return suspendCancellableCoroutine { cont ->
@@ -113,7 +113,10 @@ class StudioCompositionEngine(
         val effects = if (overlays.isEmpty()) {
             Effects(emptyList(), emptyList())
         } else {
-            Effects(emptyList(), listOf(OverlayEffect(overlays)))
+            // OverlayEffect يتطلب ImmutableList<TextureOverlay> (وليس List<BitmapOverlay>).
+            val textureOverlays: ImmutableList<TextureOverlay> =
+                ImmutableList.copyOf(overlays)
+            Effects(emptyList(), listOf(OverlayEffect(textureOverlays)))
         }
 
         // ملاحظة: لا نحدد المدة هنا. مدة خلفية الصورة تأتي من setImageDurationMs أعلاه،

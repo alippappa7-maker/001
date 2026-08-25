@@ -1,8 +1,8 @@
 package com.example.domain.service.studio.template
 
 import android.graphics.Bitmap
-import androidx.media3.common.OverlaySettings
 import androidx.media3.effect.BitmapOverlay
+import androidx.media3.effect.OverlaySettings
 
 /**
  * طبقة نص متحركة زمنيًا: ترث [BitmapOverlay] وتتجاوز [getOverlaySettings]

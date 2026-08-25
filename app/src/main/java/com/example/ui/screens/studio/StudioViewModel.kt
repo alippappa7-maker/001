@@ -28,7 +28,7 @@ import com.example.domain.model.studio.VideoStyle
 import com.example.domain.model.studio.VideoTone
 import com.example.domain.service.studio.GeminiStyleAnalysisService
 import com.example.domain.service.studio.LocalResourceProvider
-import com.example.domain.service.studio.LocalVideoRenderService
+import com.example.domain.service.studio.Media3VideoRenderService
 import com.example.domain.service.studio.MockVideoGenerationService
 import com.example.domain.service.studio.ResourceProvider
 import com.example.domain.service.studio.StyleAnalysisService
@@ -64,7 +64,7 @@ class StudioViewModel @JvmOverloads constructor(
     private val repository: StudioRepository = StudioRepositoryImpl(application),
     generationService: VideoGenerationService? = null,
     private val resourceProvider: ResourceProvider = LocalResourceProvider(),
-    private val renderService: VideoRenderService = LocalVideoRenderService(),
+    private val renderService: VideoRenderService = Media3VideoRenderService(application),
     private val styleAnalysisService: StyleAnalysisService = GeminiStyleAnalysisService(application)
 ) : AndroidViewModel(application) {
 

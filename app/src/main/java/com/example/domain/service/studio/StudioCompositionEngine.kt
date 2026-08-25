@@ -79,8 +79,21 @@ class StudioCompositionEngine(
             buildEditedMediaItem(scene, storyboard)
         }
         // في Media3 1.4.1 لا يوجد EditedMediaItemSequence.Builder؛ يُمرّر List مباشرةً.
-        val sequence = EditedMediaItemSequence(editedItems)
-        val composition = Composition.Builder(sequence).build()
+        val videoSequence = EditedMediaItemSequence(editedItems)
+
+        // ربط الصوت (مثل تلاوة القرآن) إن وُجد. نبني تسلسلًا صوتيًا منفصلًا
+        // يحمل ملف التلاوة بلا فيديو، ونضمّه إلى نفس التركيب (Composition) إلى جانب
+        // تسلسل الفيديو. Media3 يدمج التسلسلات ويزامن الصوت مع الفيديو المُصدَّر.
+        val sequences = mutableListOf(videoSequence)
+        storyboard.audioUri?.let { audioUri ->
+            val audioMediaItem = MediaItem.fromUri(Uri.parse(audioUri))
+            val audioItem = EditedMediaItem.Builder(audioMediaItem)
+                .setEffects(Effects(emptyList(), emptyList()))
+                .build()
+            sequences += EditedMediaItemSequence(listOf(audioItem))
+        }
+
+        val composition = Composition.Builder(sequences).build()
 
         return suspendCancellableCoroutine { cont ->
             listener.attach(cont)
@@ -176,8 +189,10 @@ class StudioCompositionEngine(
                 .build()
             BitmapOverlay.createStaticBitmapOverlay(layer.bitmap, settings)
         }
-        // الإطار الزخرفي (صورة) أولاً ثم النص فوقه، حتى يكون المندلة خلف الآية لا أمامها.
-        return imageOverlays + textOverlays
+        // overlay ديناميكي اختياري (مثل مزامنة القران كلمة بكلمة): يُركَّب فوق كل ما سبق.
+        val dynamicOverlays = listOfNotNull(scene.dynamicOverlay)
+        // الإطار الزخرفي (صورة) أولاً ثم النص فوقه ثم الـ overlay الديناميكي فوق الكل.
+        return imageOverlays + textOverlays + dynamicOverlays
     }
 
     /**

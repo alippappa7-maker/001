@@ -9,8 +9,11 @@ import android.graphics.PorterDuff
 import android.graphics.Shader
 import android.graphics.Typeface
 import android.text.Layout
+import android.text.Spannable
+import android.text.SpannableStringBuilder
 import android.text.StaticLayout
 import android.text.TextPaint
+import android.text.style.ForegroundColorSpan
 import com.example.domain.model.studio.LayerHorizontalAlignment
 import com.example.domain.model.studio.TextLayer
 import kotlin.math.roundToInt
@@ -93,9 +96,86 @@ class TextBitmapRenderer(private val context: Context) {
     }
 
     /**
-     * نسخة مساعدة: يولّد خلفية متدرجة بسيطة (Gradient) كـ Bitmap.
-     * مفيدة كخلفية افتراضية عندما لا يوجد فيديو/صورة للمشهد.
+     * يرسم الآية مع تظليل كلمة واحدة فقط بلون مختلف (ذهبي افتراضيًا)،
+     * بينما تبقى بقية الكلمات باللون الأساسي.
+     *
+     * الاستخدام: محرك المزامنة كلمة بكلمة يولّد Bitmap لكل كلمة نشطة
+     * دون إعادة حساب حجم الصفحة — فقط يبدّل لون الكلمة الفعلية.
+     *
+     * يبني SpannableStringBuilder بكلمة كلمة بدل البحث النصي (indexOf)،
+     * ما يلغي مشاكل الكلمات المتكررة واختلاف التشكيل/الرسم، ويضمن تطابق
+     * الفهرس الملوّن تمامًا مع ترتيب الكلمة في القائمة.
+     *
+     * @param words نصوص الكلمات بالترتيب الصحيح.
+     * @param activeWordIndex فهرس الكلمة النشطة (0-based) داخل قائمة [words]،
+     *        أو -1 لتلوين النص بالكامل بلون الكلمات العادية.
+     * @param videoWidth عرض الفيديو (لحساب الهامش).
+     * @param videoHeight ارتفاع الفيديو.
+     * @param fontSizeSp حجم الخط.
+     * @param baseColorArgb لون الكلمات العادية.
+     * @param highlightColorArgb لون الكلمة النشطة (الذهبي افتراضيًا).
      */
+    fun renderHighlighted(
+        words: List<String>,
+        activeWordIndex: Int,
+        videoWidth: Int,
+        videoHeight: Int,
+        fontSizeSp: Int = 44,
+        baseColorArgb: Int = 0xFFE8E0D0.toInt(),
+        highlightColorArgb: Int = 0xFFE6B800.toInt()
+    ): Bitmap {
+        val density = context.resources.displayMetrics.density
+        val textSizePx = (fontSizeSp * density).roundToInt().toFloat()
+
+        val textPaint = TextPaint(Paint.ANTI_ALIAS_FLAG or Paint.SUBPIXEL_TEXT_FLAG).apply {
+            color = baseColorArgb
+            textSize = textSizePx
+            typeface = defaultTypeface
+            textAlign = Paint.Align.CENTER
+        }
+
+        val maxTextWidthPx = (videoWidth * 0.84f).roundToInt().coerceAtLeast(1)
+
+        // بناء SpannableStringBuilder كلمة بكلمة مع فاصل مسافة، وتطبيق لون التظليل
+        // على الكلمة النشطة فقط أثناء الإضافة. هذا يضمن تطابق الفهرس مع الترتيب.
+        val spannable = SpannableStringBuilder()
+        for (i in words.indices) {
+            if (i > 0) spannable.append(" ")
+            val wordText = words[i]
+            val start = spannable.length
+            spannable.append(wordText)
+            if (i == activeWordIndex) {
+                spannable.setSpan(
+                    ForegroundColorSpan(highlightColorArgb),
+                    start, spannable.length,
+                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
+            }
+        }
+
+        val layout = StaticLayout.Builder.obtain(
+            spannable, 0, spannable.length, textPaint, maxTextWidthPx
+        )
+            .setAlignment(Layout.Alignment.ALIGN_CENTER)
+            .setIncludePad(true)
+            .setLineSpacing(0f, 1.15f)
+            .build()
+
+        val bitmapWidth = layout.width.coerceAtLeast(1)
+        val bitmapHeight = layout.height.coerceAtLeast(1)
+
+        val bitmap = Bitmap.createBitmap(bitmapWidth, bitmapHeight, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        canvas.drawColor(0, PorterDuff.Mode.CLEAR)
+
+        // ظل خفيف خلف النص لزيادة الوضوح فوق الخلفيات المتنوعة.
+        textPaint.setShadowLayer(
+            textSizePx * 0.12f, 0f, textSizePx * 0.08f, 0x80000000.toInt()
+        )
+        layout.draw(canvas)
+
+        return bitmap
+    }
     fun renderGradientBackground(
         width: Int,
         height: Int,

@@ -1,3 +1,7 @@
+@file:androidx.annotation.OptIn(
+    markerClass = [androidx.media3.common.util.UnstableApi::class]
+)
+
 package com.example.domain.model.studio
 
 import android.graphics.Bitmap
@@ -98,6 +102,10 @@ data class BackgroundLayer(
 
 /**
  * مشهد واحد في لوحة القصة: خلفية + طبقات نص/صورة + مدة + انتقال.
+ *
+ * @param dynamicOverlay overlay خام يتبدّل محتواه حسب presentationTimeUs
+ * (مثل [SyncedAyahOverlay] لمزامنة الكلمات مع التلاوة). يُركَّب فوق كل
+ * الطبقات الأخرى في المشهد. اختياري ولا يتعارض مع textLayers/overlayLayers.
  */
 data class CompositionScene(
     val id: String = java.util.UUID.randomUUID().toString(),
@@ -105,7 +113,8 @@ data class CompositionScene(
     val background: BackgroundLayer = BackgroundLayer(),
     val textLayers: List<TextLayer> = emptyList(),
     val overlayLayers: List<ImageOverlayLayer> = emptyList(),
-    val transitionMs: Long = 400L
+    val transitionMs: Long = 400L,
+    val dynamicOverlay: androidx.media3.effect.BitmapOverlay? = null
 ) {
     init {
         require(durationMs > 0) { "durationMs must be positive" }

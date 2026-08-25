@@ -7,14 +7,16 @@ import androidx.room.RoomDatabase
 import com.example.data.local.content.ContentDao
 import com.example.data.local.content.ContentEntity
 import com.example.data.local.studio.StudioDao
+import com.example.data.local.studio.StyleReferenceEntity
 import com.example.data.local.studio.VideoProjectEntity
 
 @Database(
     entities = [
         VideoProjectEntity::class,
-        ContentEntity::class
+        ContentEntity::class,
+        StyleReferenceEntity::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

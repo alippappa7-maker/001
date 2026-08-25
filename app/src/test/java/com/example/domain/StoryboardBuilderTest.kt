@@ -66,7 +66,7 @@ class StoryboardBuilderTest {
         assertEquals(1080, storyboard.width)
         assertEquals(3, storyboard.textLayerCount)
         assertEquals("اللهم صلّ وسلم", storyboard.scenes[0].textLayers.first().text)
-        assertEquals("على آله وصحبه", storyboard.scenes[2].textLayers.first().text)
+        assertEquals("وعلى آله وصحبه", storyboard.scenes[2].textLayers.first().text)
         // كل مشهد له مدة موجبة
         storyboard.scenes.forEach { assertTrue(it.durationMs > 0) }
     }

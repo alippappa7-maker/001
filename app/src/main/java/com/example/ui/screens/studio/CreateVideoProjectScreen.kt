@@ -48,6 +48,8 @@ import com.example.ui.theme.QabasDimens
 import com.example.ui.theme.QabasThemeTokens
 import com.example.ui.theme.StudioBlue
 
+private val VERSE_KEY_REGEX = Regex("^\\d{1,3}:\\d{1,3}$")
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateVideoProjectScreen(
@@ -68,6 +70,7 @@ fun CreateVideoProjectScreen(
     var hasVoiceover by remember { mutableStateOf(project?.idea?.hasVoiceover ?: true) }
     var hasOnScreenText by remember { mutableStateOf(project?.idea?.hasOnScreenText ?: true) }
     var hasMusicOrEffects by remember { mutableStateOf(project?.idea?.hasMusicOrEffects ?: true) }
+    var verseKey by remember { mutableStateOf(project?.idea?.verseKey ?: "") }
 
     var errorMessage by remember { mutableStateOf<String?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
@@ -99,12 +102,26 @@ fun CreateVideoProjectScreen(
                 QabasButton(
                     text = stringResource(R.string.studio_btn_analyze_idea),
                     onClick = {
-                        if (ideaText.trim().isBlank()) {
+                        val isQuran = editingStyle == EditingStyle.QURAN_RECITATION
+                        val verseKeyTrim = verseKey.trim()
+
+                        if (isQuran && !VERSE_KEY_REGEX.matches(verseKeyTrim)) {
+                            errorMessage = "أدخل مفتاح آية صحيحًا (مثال: 2:255)"
+                            return@QabasButton
+                        }
+                        if (!isQuran && ideaText.trim().isBlank()) {
                             errorMessage = "يرجى كتابة فكرة الفيديو أولاً للمتابعة"
                             return@QabasButton
                         }
+
+                        val resolvedIdeaText = if (isQuran && ideaText.trim().isBlank()) {
+                            "تلاوة قرآنية: $verseKeyTrim"
+                        } else {
+                            ideaText.trim()
+                        }
+
                         val updatedIdea = VideoIdea(
-                            ideaText = ideaText.trim(),
+                            ideaText = resolvedIdeaText,
                             language = language,
                             orientation = orientation,
                             duration = duration,
@@ -113,7 +130,8 @@ fun CreateVideoProjectScreen(
                             editingStyle = editingStyle,
                             hasVoiceover = hasVoiceover,
                             hasOnScreenText = hasOnScreenText,
-                            hasMusicOrEffects = hasMusicOrEffects
+                            hasMusicOrEffects = hasMusicOrEffects,
+                            verseKey = if (isQuran) verseKeyTrim else ""
                         )
                         viewModel.updateIdea(updatedIdea)
                         viewModel.analyzeIdea()
@@ -284,6 +302,38 @@ fun CreateVideoProjectScreen(
                         itemLabel = { it.titleAr },
                         onSelect = { editingStyle = it }
                     )
+                }
+
+                // 7b. Quran verse key (يظهر فقط لنمط التلاوة القرآنية)
+                if (editingStyle == EditingStyle.QURAN_RECITATION) {
+                    SectionCard(title = "مفتاح الآية", required = true) {
+                        OutlinedTextField(
+                            value = verseKey,
+                            onValueChange = { verseKey = it },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("input_verse_key"),
+                            placeholder = {
+                                Text(
+                                    text = "مثال: 2:255 (السورة:رقم الآية)",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = colors.textSecondary.copy(alpha = 0.6f)
+                                )
+                            },
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = colors.gold,
+                                unfocusedBorderColor = colors.surfaceElevated,
+                                focusedTextColor = colors.textPrimary,
+                                unfocusedTextColor = colors.textPrimary,
+                                cursorColor = colors.gold,
+                                focusedContainerColor = colors.surfaceElevated.copy(alpha = 0.4f),
+                                unfocusedContainerColor = colors.surfaceElevated.copy(alpha = 0.4f)
+                            ),
+                            shape = RoundedCornerShape(QabasDimens.Radius12),
+                            singleLine = true,
+                            textStyle = MaterialTheme.typography.bodyMedium
+                        )
+                    }
                 }
 
                 // 8. Toggles (Voiceover, On-screen text, Music/Effects)

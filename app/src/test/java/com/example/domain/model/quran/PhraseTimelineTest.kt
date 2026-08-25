@@ -33,13 +33,15 @@ class PhraseTimelineTest {
     private val phraseTimeline = RecitationCueDetector.detect(timeline)
 
     @Test
-    fun `الكلمة النشطة في العبارة الأولى تُعطى ACTIVE وبقية كلماتها CURRENT`() {
-        // نطق الكلمة الثانية (وسط العبارة الأولى)
+    fun `الكلمة النشطة في العبارة الأولى تُعطى ACTIVE وبقية كلمات العبارة نفسها CURRENT`() {
+        // نطق الكلمة الثانية (وسط العبارة الأولى المكوّنة من الكلمات 1-3)
         val states = phraseTimeline.visualStatesAt(1_000L)
 
-        assertEquals(WordVisualState.PAST, states[0])
+        // الكلمة الأولى (فهرس 0) تقع في نفس العبارة الحالية (0..2) فتُعطى CURRENT
+        assertEquals(WordVisualState.CURRENT, states[0])
         assertEquals(WordVisualState.ACTIVE, states[1])
         assertEquals(WordVisualState.CURRENT, states[2])
+        // الكلمة الرابعة خارج العبارة الحالية بالكامل (العبارة الثانية) فتُعطى PAST
         assertEquals(WordVisualState.PAST, states[3])
     }
 

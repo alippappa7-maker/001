@@ -3,6 +3,7 @@ package com.example.domain.model.quran
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import org.junit.Assert.assertThrows
 import org.junit.Test
 import java.io.File
 
@@ -106,8 +107,8 @@ class ShariaExportValidatorTest {
 
     @Test
     fun `بطاقة المصدر ترضى شرط https فقط`() {
-        // http غير آمن يُرفض في البناء، وليس مجرد فشل تحقق
-        try {
+        // http غير آمن يُرفض في البناء نفسه (init block)، وليس مجرد فشل تحقق لاحق
+        assertThrows(IllegalArgumentException::class.java) {
             SourceCard(
                 reciterName = "مشاري",
                 reciterStyle = "مرتل",
@@ -116,9 +117,6 @@ class ShariaExportValidatorTest {
                 textSourceUrl = "https://api.quran.com/test",
                 timingsSourceUrl = "https://api.qurancdn.com/test"
             )
-            assert(false) { "يجب أن يفشل بناء بطاقة المصدر بـ http" }
-        } catch (e: IllegalArgumentException) {
-            // متوقع تمامًا
         }
     }
 }

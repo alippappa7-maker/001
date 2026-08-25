@@ -41,6 +41,25 @@ class Media3VideoRenderService(
     private val quranAdapter by lazy { QuranRecitationExportAdapter(context) }
 
     /**
+     * مزودات الموارد الخارجية (Pexels/Pixabay) — قابلة لإعادة الاستخدام
+     * عبر المشاريع، تُبنى مرة واحدة.
+     */
+    private val stockProviders by lazy { buildStockProviders() }
+
+    /**
+     * يبني مزودًا مركّبًا كاملًا لمشروع معيّن: يضيف أصول المستخدم المحلية
+     * (التي تحتاج المشروع) أمام مزودات الموارد الخارجية.
+     */
+    private fun buildProviderForProject(
+        project: VideoProject
+    ): com.example.domain.service.studio.resource.CompositeResourceProvider {
+        val local = com.example.domain.service.studio.resource.LocalResourceProvider(project)
+        return com.example.domain.service.studio.resource.CompositeResourceProvider(
+            listOf(local) + stockProviders
+        )
+    }
+
+    /**
      * يختار مصدر لوحة القصة: قوالب خاصة حسب نمط التحرير (انظر [templateFor])،
      * وإلا المسار العام عبر [StoryboardBuilder]. هذا الربط وحيد ومحصور هنا
      * حتى لا تنتشر تفاصيل القوالب في طبقة العرض.
@@ -147,7 +166,7 @@ class Media3VideoRenderService(
     }
 
     override suspend fun exportVideo(project: VideoProject): VideoExportResult {
-        val storyboard = try {
+        val rawStoryboard = try {
             resolveStoryboardSuspend(project)
         } catch (t: Throwable) {
             return VideoExportResult(
@@ -155,6 +174,18 @@ class Media3VideoRenderService(
                 message = "تعذّر بناء لوحة القصة: ${t.message ?: "خطأ غير معروف"}",
                 notice = "تأكد من وجود مشاهد ونصوص صالحة في المشروع."
             )
+        }
+
+        // حلّ نوايا الموارد: يستبدل الخلفيات اللونية بصور/فيديوهات حقيقية
+        // متى ما توفّرت (محليًا أو من Pexels/Pixabay). لا يفشل أبدًا —
+        // إن لم يجد موردًا يُبقي الخلفية اللونية الاحتياطية.
+        val storyboard = try {
+            val resolver = com.example.domain.service.studio.resource.SceneResourceResolver(
+                buildProviderForProject(project)
+            )
+            resolver.resolve(rawStoryboard, project)
+        } catch (_: Throwable) {
+            rawStoryboard
         }
 
         val outputFile = File(
@@ -191,5 +222,40 @@ class Media3VideoRenderService(
         } else {
             String.format(java.util.Locale.US, "%.1f MB", kb / 1024.0)
         }
+    }
+
+    /**
+     * يبني مزودات الموارد الخارجية (Pexels ثم Pixabay) مع ذاكرة مؤقتة محلية.
+     *
+     * مفاتيح Pexels/Pixabay تُقرأ من BuildConfig (المولّدة من .env عبر
+     * Secrets Plugin). إن كانت فارغة، يُعطّل المزود الخارجي تلقائيًا
+     * ويعمل التصدير بالخلفيات اللونية بدون إنترنت.
+     */
+    private fun buildStockProviders(): List<com.example.domain.service.studio.resource.MediaResourceProvider> {
+        val cacheDir = File(context.cacheDir, "stock_media")
+        val cache = com.example.domain.service.studio.resource.StockMediaCache(cacheDir)
+        val pexelsKey = readBuildConfigField("PEXELS_API_KEY")
+        val pixabayKey = readBuildConfigField("PIXABAY_API_KEY")
+
+        return listOfNotNull(
+            com.example.domain.service.studio.resource.PexelsResourceProvider(
+                apiKeyProvider = { pexelsKey },
+                cache = cache
+            ).takeIf { it.isAvailable },
+            com.example.domain.service.studio.resource.PixabayResourceProvider(
+                apiKeyProvider = { pixabayKey },
+                cache = cache
+            ).takeIf { it.isAvailable }
+        )
+    }
+
+    /**
+     * يقرأ حقلًا نصيًا من BuildConfig بأمان (يعيد نصًا فارغًا إن لم يُوجد).
+     */
+    private fun readBuildConfigField(name: String): String {
+        return runCatching {
+            val field = com.example.BuildConfig::class.java.getField(name)
+            field.get(null) as? String ?: ""
+        }.getOrDefault("")
     }
 }

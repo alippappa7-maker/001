@@ -6,6 +6,8 @@ import com.example.domain.model.studio.TextLayer
 import com.example.domain.model.studio.LayerHorizontalAlignment
 import com.example.domain.model.studio.LayerVerticalAlignment
 import com.example.domain.model.studio.TextAnimation
+import com.example.domain.model.studio.ResourceIntent
+import com.example.domain.model.studio.VisualCategory
 
 /**
  * مساعدات مشتركة بين القوالب المتميّزة لتفادي تكرار منطق استخراج النصوص
@@ -62,5 +64,34 @@ internal object TemplateCommon {
         1 -> "●"
         2 -> "■"
         else -> "▲"
+    }
+
+    /**
+     * يبني نيّة مورد بصري للمشهد: يختار فئة مناسبة لنمط التحرير، ويُرفق
+     * معرّف الأصل المحلي إن أرفق المستخدم أصلًا بالمشهد المقابل في الخطة.
+     *
+     * القالب يبقى خالصًا — لا يعرف عن Pexels/Pixabay؛ يصف فقط «ماذا يريد».
+     * حلّ النيّة يتم لاحقًا في طبقة الخدمة.
+     */
+    fun resourceIntentForScene(
+        project: VideoProject,
+        sceneIndex: Int,
+        durationMs: Long,
+        preferMotion: Boolean = false
+    ): ResourceIntent {
+        val category = VisualCategory.forEditingStyle(project.idea.editingStyle)
+        val attachedAssetId = project.plan.scenes.getOrNull(sceneIndex)?.attachedAssetId
+        val keywords = project.plan.scenes.getOrNull(sceneIndex)?.visualDescription
+            ?.takeIf { it.isNotBlank() }
+            ?.let { listOf(it) }
+            ?: emptyList()
+        return ResourceIntent(
+            category = category,
+            keywords = keywords,
+            durationMs = durationMs,
+            fallbackColorArgb = category.fallbackColor,
+            preferMotion = preferMotion,
+            attachedAssetId = attachedAssetId
+        )
     }
 }

@@ -26,6 +26,16 @@ class FastReelsTemplate : CompositionTemplate {
         val (width, height) = TemplateCommon.resolveDimensions(orientation)
         val brand = "قبس"
         val scenes = buildScenes(texts, project, brand)
+            .mapIndexed { index, scene ->
+                scene.copy(
+                    resourceIntent = TemplateCommon.resourceIntentForScene(
+                        project = project,
+                        sceneIndex = index,
+                        durationMs = scene.durationMs,
+                        preferMotion = true
+                    )
+                )
+            }
         return CompositionStoryboard(width = width, height = height, fps = 30, scenes = scenes)
     }
 

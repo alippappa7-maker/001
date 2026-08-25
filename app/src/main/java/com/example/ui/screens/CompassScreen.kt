@@ -249,6 +249,33 @@ fun CompassScreen(
                     }
                 }
 
+                // رسالة خطأ تهيئة (خدمات Google Play أو المستشعرات غير متوفرة)
+                // تُعرض بدلاً من كراش التطبيق عند عدم توفر خدمات الموقع/البوصلة.
+                uiState.initializationError?.let { errorMsg ->
+                    QabasCard(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("card_compass_init_error"),
+                        glowAccent = colors.gold,
+                        contentPadding = QabasDimens.Space16
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(Icons.Default.Warning, contentDescription = null, tint = colors.gold)
+                            Spacer(modifier = Modifier.height(QabasDimens.Space8))
+                            Text(
+                                text = errorMsg,
+                                color = colors.textPrimary,
+                                textAlign = TextAlign.Center
+                            )
+                            Spacer(modifier = Modifier.height(QabasDimens.Space12))
+                            QabasButton(
+                                text = stringResource(R.string.enter_city_manually),
+                                onClick = { viewModel.enableManualCityMode() }
+                            )
+                        }
+                    }
+                }
+
                 if (uiState.qiblaAngle != null) {
                     QabasCard(
                         modifier = Modifier

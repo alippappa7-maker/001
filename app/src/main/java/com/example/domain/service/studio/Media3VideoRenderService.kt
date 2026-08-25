@@ -4,11 +4,17 @@ import android.content.Context
 import com.example.domain.model.studio.EditingStyle
 import com.example.domain.model.studio.FallbackResourceMode
 import com.example.domain.model.studio.VideoProject
+import com.example.domain.service.studio.template.AnimationTemplate
 import com.example.domain.service.studio.template.CanvasOrnamentalFrameProvider
 import com.example.domain.service.studio.template.CanvasSunsetBackgroundProvider
+import com.example.domain.service.studio.template.CinematicTemplate
 import com.example.domain.service.studio.template.CompositionTemplate
+import com.example.domain.service.studio.template.DocumentaryTemplate
+import com.example.domain.service.studio.template.EducationalTemplate
+import com.example.domain.service.studio.template.FastReelsTemplate
 import com.example.domain.service.studio.template.MovingQuotesTemplate
 import com.example.domain.service.studio.template.NaeemZuhdTemplate
+import com.example.domain.service.studio.template.ShortAdTemplate
 import com.example.domain.service.studio.template.TadhkirahMawidhaTemplate
 import java.io.File
 
@@ -25,11 +31,11 @@ class Media3VideoRenderService(
     private val context: Context,
     private val storyBuilder: StoryboardBuilder = StoryboardBuilder(),
     private val compositionEngine: StudioCompositionEngine = StudioCompositionEngine(context),
+    private val movingQuotesTemplate: CompositionTemplate = MovingQuotesTemplate(),
     private val tadhkirahTemplate: CompositionTemplate =
         TadhkirahMawidhaTemplate(CanvasOrnamentalFrameProvider()),
     private val naeemTemplate: CompositionTemplate =
-        NaeemZuhdTemplate(CanvasSunsetBackgroundProvider()),
-    private val movingQuotesTemplate: CompositionTemplate = MovingQuotesTemplate()
+        NaeemZuhdTemplate(CanvasSunsetBackgroundProvider())
 ) : VideoRenderService {
 
     private val quranAdapter by lazy { QuranRecitationExportAdapter(context) }
@@ -60,13 +66,42 @@ class Media3VideoRenderService(
 
     /**
      * يختار القالب بناءً على نمط التحرير: "تأملي" ← تذكرة، "قصصي" ← النعيم والزهد،
-     * "اقتباسات مؤثرة" ← اقتباسات متحركة، وإلا المسار العام عبر [storyBuilder].
+     * "اقتباسات مؤثرة" ← اقتباسات متحركة، والأنماط العامة الستة لها قوالبها المتميّزة الآن،
+     * وإلا المسار العام عبر [storyBuilder].
      */
     private fun templateFor(style: EditingStyle): CompositionTemplate? = when (style) {
         EditingStyle.MEDITATIVE -> tadhkirahTemplate
         EditingStyle.STORYTELLING -> naeemTemplate
         EditingStyle.MOVING_QUOTES -> movingQuotesTemplate
+        // الأنماط العامة الستة تُوجَّه عبر دالة مستقلة قابلة للاختبار خالصة.
+        EditingStyle.CINEMATIC,
+        EditingStyle.DOCUMENTARY,
+        EditingStyle.EDUCATIONAL,
+        EditingStyle.FAST_REELS,
+        EditingStyle.SHORT_AD,
+        EditingStyle.ANIMATION -> templateForStyle(style)
         else -> null
+    }
+
+    companion object {
+        /**
+         * توجيه نمط التحرير إلى القالب المتميّز المقابل للأنماط العامة الستة.
+         * مُستخرَجة كدالة مستقلة (تبني القوالب داخليًا) لتمكين اختبار التكامل
+         * دون الحاجة إلى Android Context أو مثال الخدمة.
+         *
+         * ملاحظة: الأنماط الخاصة (MEDITATIVE/STORYTELLING/MOVING_QUOTES) تُبنى داخل
+         * الخدمة لأن بعضها يعتمد على مزودات Android (Canvas). الأنماط العامة الستة
+         * هنا لا تعتمد على Android، لذا يمكن اختبارها خالصة.
+         */
+        internal fun templateForStyle(style: EditingStyle): CompositionTemplate? = when (style) {
+            EditingStyle.CINEMATIC -> CinematicTemplate()
+            EditingStyle.DOCUMENTARY -> DocumentaryTemplate()
+            EditingStyle.EDUCATIONAL -> EducationalTemplate()
+            EditingStyle.FAST_REELS -> FastReelsTemplate()
+            EditingStyle.SHORT_AD -> ShortAdTemplate()
+            EditingStyle.ANIMATION -> AnimationTemplate()
+            else -> null
+        }
     }
 
     /**

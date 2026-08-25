@@ -41,6 +41,19 @@ jobs:
       - name: Run lint
         run: ./gradlew lintDebug --stacktrace
 
+      - name: Upload lint report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lint-report
+          path: |
+            app/build/reports/lint-results-*.html
+            app/build/reports/lint-results-*.txt
+            app/build/reports/lint-results-*.xml
+            app/build/intermediates/lint_intermediate_text_report/**/*.txt
+          if-no-files-found: ignore
+          retention-days: 14
+
       - name: Build debug APK
         run: ./gradlew assembleDebug --stacktrace
 

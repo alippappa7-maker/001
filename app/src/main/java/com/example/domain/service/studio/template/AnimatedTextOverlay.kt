@@ -1,3 +1,7 @@
+@file:androidx.annotation.OptIn(
+    markerClass = [androidx.media3.common.util.UnstableApi::class]
+)
+
 package com.example.domain.service.studio.template
 
 import android.graphics.Bitmap

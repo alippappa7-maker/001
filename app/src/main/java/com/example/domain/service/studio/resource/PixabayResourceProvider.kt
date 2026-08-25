@@ -5,6 +5,8 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * مزود موارد من Pixabay (صور + فيديوهات مجانية) — مصدر ثانوي احتياطي
@@ -36,7 +38,7 @@ class PixabayResourceProvider(
         }
     }
 
-    private fun resolvePhoto(apiKey: String, query: String): MediaResource? {
+    private suspend fun resolvePhoto(apiKey: String, query: String): MediaResource? {
         val url = "$photosEndpoint?key=$apiKey&q=$query&per_page=5&image_type=photo&orientation=vertical"
         val json = getJson(url) ?: return null
         val hits = json.optJSONArray("hits") ?: return null
@@ -47,7 +49,7 @@ class PixabayResourceProvider(
         return MediaResource.LocalImage(localPath)
     }
 
-    private fun resolveVideo(apiKey: String, query: String, intent: ResourceIntent): MediaResource? {
+    private suspend fun resolveVideo(apiKey: String, query: String, intent: ResourceIntent): MediaResource? {
         val url = "$videosEndpoint?key=$apiKey&q=$query&per_page=5&video_type=all"
         val json = getJson(url) ?: return null
         val hits = json.optJSONArray("hits") ?: return null
@@ -62,15 +64,17 @@ class PixabayResourceProvider(
         return MediaResource.LocalVideo(localPath, intent.durationMs)
     }
 
-    private fun getJson(url: String): JSONObject? {
-        return runCatching {
-            val request = Request.Builder().url(url).build()
-            client.newCall(request).execute().use { response ->
-                if (!response.isSuccessful) return null
-                val body = response.body?.string() ?: return null
-                JSONObject(body)
-            }
-        }.getOrNull()
+    private suspend fun getJson(url: String): JSONObject? {
+        return withContext(Dispatchers.IO) {
+            runCatching {
+                val request = Request.Builder().url(url).build()
+                client.newCall(request).execute().use { response ->
+                    if (!response.isSuccessful) return@withContext null
+                    val body = response.body?.string() ?: return@withContext null
+                    JSONObject(body)
+                }
+            }.getOrNull()
+        }
     }
 
     private fun buildQuery(intent: ResourceIntent): String {

@@ -5,6 +5,8 @@ import okhttp3.Request
 import java.io.File
 import java.security.MessageDigest
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * يُنزّل الموارد الخارجية (صور/فيديوهات) ويخزّنها محليًا في ذاكرة مؤقتة.
@@ -37,15 +39,16 @@ class StockMediaCache(
     /**
      * يُنزّل المورد من الرابط إن لم يكن مخزّنًا مسبقًا، ويعيد مساره المحلي.
      * يفشل ويرجع null عند أي خطأ شبكي/إدخال-إخراج (لا يُسقط التصدير).
+     * يُنفّذ على Dispatchers.IO لتجنّب NetworkOnMainThreadException.
      */
-    fun downloadIfAbsent(url: String): String? {
+    suspend fun downloadIfAbsent(url: String): String? = withContext(Dispatchers.IO) {
         val target = cachedFile(url)
-        if (target.exists() && target.length() > 0) return target.absolutePath
-        return runCatching {
+        if (target.exists() && target.length() > 0) return@withContext target.absolutePath
+        runCatching {
             val request = Request.Builder().url(url).build()
             client.newCall(request).execute().use { response ->
-                if (!response.isSuccessful) return null
-                val body = response.body ?: return null
+                if (!response.isSuccessful) return@withContext null
+                val body = response.body ?: return@withContext null
                 target.outputStream().use { body.byteStream().copyTo(it) }
             }
             target.absolutePath.takeIf { target.length() > 0 }

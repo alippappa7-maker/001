@@ -1,5 +1,6 @@
 package com.example.ui.screens.studio
 
+import com.example.ui.screens.studio.components.SceneResourceBadge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -577,6 +578,14 @@ private fun DetailedSceneCard(
                         text = "${scene.durationSeconds} ثوانٍ",
                         style = MaterialTheme.typography.labelSmall,
                         color = colors.textSecondary
+                    )
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    // شارة حالة المورد: صورة/فيديو حقيقي أم لون تلقائي.
+                    SceneResourceBadge(
+                        hasRealAsset = scene.attachedAssetId != null,
+                        isVideo = scene.attachedAssetType == com.example.domain.model.studio.AssetType.VIDEO_CLIP
                     )
                 }
 

@@ -5,6 +5,8 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * مزود موارد من Pexels (صور + فيديوهات مجانية).
@@ -43,7 +45,7 @@ class PexelsResourceProvider(
         }
     }
 
-    private fun resolvePhoto(apiKey: String, query: String): MediaResource? {
+    private suspend fun resolvePhoto(apiKey: String, query: String): MediaResource? {
         val url = "$photosEndpoint?query=$query&per_page=5&orientation=portrait"
         val json = getJson(apiKey, url) ?: return null
         val photo = json.optJSONArray("photos")?.optJSONObject(0) ?: return null
@@ -55,7 +57,7 @@ class PexelsResourceProvider(
         return MediaResource.LocalImage(localPath)
     }
 
-    private fun resolveVideo(apiKey: String, query: String, intent: ResourceIntent): MediaResource? {
+    private suspend fun resolveVideo(apiKey: String, query: String, intent: ResourceIntent): MediaResource? {
         val url = "$videosEndpoint?query=$query&per_page=5&orientation=portrait"
         val json = getJson(apiKey, url) ?: return null
         val video = json.optJSONArray("videos")?.optJSONObject(0) ?: return null
@@ -69,17 +71,19 @@ class PexelsResourceProvider(
         return MediaResource.LocalVideo(localPath, intent.durationMs)
     }
 
-    private fun getJson(apiKey: String, url: String): JSONObject? {
-        return runCatching {
-            val request = Request.Builder().url(url)
-                .addHeader("Authorization", apiKey)
-                .build()
-            client.newCall(request).execute().use { response ->
-                if (!response.isSuccessful) return null
-                val body = response.body?.string() ?: return null
-                JSONObject(body)
-            }
-        }.getOrNull()
+    private suspend fun getJson(apiKey: String, url: String): JSONObject? {
+        return withContext(Dispatchers.IO) {
+            runCatching {
+                val request = Request.Builder().url(url)
+                    .addHeader("Authorization", apiKey)
+                    .build()
+                client.newCall(request).execute().use { response ->
+                    if (!response.isSuccessful) return@withContext null
+                    val body = response.body?.string() ?: return@withContext null
+                    JSONObject(body)
+                }
+            }.getOrNull()
+        }
     }
 
     private fun buildQuery(intent: ResourceIntent): String {

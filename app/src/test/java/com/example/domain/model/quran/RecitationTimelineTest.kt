@@ -63,7 +63,7 @@ class RecitationTimelineTest {
     }
 
     @Test
-    fun `التحقق الشرعي: عدد الكلمات الفارغ يرفض البناء`() {
+    fun `التحقق الشرعي - عدد الكلمات الفارغ يرفض البناء`() {
         assertThrows(IllegalArgumentException::class.java) {
             RecitationTimeline(
                 verseKey = "1:1",
@@ -78,14 +78,14 @@ class RecitationTimelineTest {
     }
 
     @Test
-    fun `التحقق الشرعي: نهاية قبل بداية ترفض بناء الكلمة`() {
+    fun `التحقق الشرعي - نهاية قبل بداية ترفض بناء الكلمة`() {
         assertThrows(IllegalArgumentException::class.java) {
             TimedQuranWord(position = 1, text = "كلمة", startMs = 1000, endMs = 500)
         }
     }
 
     @Test
-    fun `التحقق الشرعي: position سالب يرفض بناء الكلمة`() {
+    fun `التحقق الشرعي - position سالب يرفض بناء الكلمة`() {
         assertThrows(IllegalArgumentException::class.java) {
             TimedQuranWord(position = 0, text = "كلمة", startMs = 0, endMs = 100)
         }

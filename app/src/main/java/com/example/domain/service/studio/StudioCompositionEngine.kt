@@ -1,3 +1,7 @@
+@file:androidx.annotation.OptIn(
+    markerClass = [androidx.media3.common.util.UnstableApi::class]
+)
+
 package com.example.domain.service.studio
 
 import android.content.Context
@@ -9,7 +13,6 @@ import androidx.media3.effect.BitmapOverlay
 import androidx.media3.effect.OverlayEffect
 import androidx.media3.effect.OverlaySettings
 import androidx.media3.effect.TextureOverlay
-import com.google.common.collect.ImmutableList
 import androidx.media3.transformer.Composition
 import androidx.media3.transformer.EditedMediaItem
 import androidx.media3.transformer.EditedMediaItemSequence
@@ -17,6 +20,7 @@ import androidx.media3.transformer.Effects
 import androidx.media3.transformer.ExportException
 import androidx.media3.transformer.ExportResult
 import androidx.media3.transformer.Transformer
+import com.google.common.collect.ImmutableList
 import com.example.domain.model.studio.BackgroundType
 import com.example.domain.model.studio.CompositionScene
 import com.example.domain.model.studio.CompositionStoryboard

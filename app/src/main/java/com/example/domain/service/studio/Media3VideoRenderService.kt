@@ -4,11 +4,17 @@ import android.content.Context
 import com.example.domain.model.studio.EditingStyle
 import com.example.domain.model.studio.FallbackResourceMode
 import com.example.domain.model.studio.VideoProject
+import com.example.domain.service.studio.template.AnimationTemplate
 import com.example.domain.service.studio.template.CanvasOrnamentalFrameProvider
 import com.example.domain.service.studio.template.CanvasSunsetBackgroundProvider
+import com.example.domain.service.studio.template.CinematicTemplate
 import com.example.domain.service.studio.template.CompositionTemplate
+import com.example.domain.service.studio.template.DocumentaryTemplate
+import com.example.domain.service.studio.template.EducationalTemplate
+import com.example.domain.service.studio.template.FastReelsTemplate
 import com.example.domain.service.studio.template.MovingQuotesTemplate
 import com.example.domain.service.studio.template.NaeemZuhdTemplate
+import com.example.domain.service.studio.template.ShortAdTemplate
 import com.example.domain.service.studio.template.TadhkirahMawidhaTemplate
 import java.io.File
 
@@ -25,14 +31,33 @@ class Media3VideoRenderService(
     private val context: Context,
     private val storyBuilder: StoryboardBuilder = StoryboardBuilder(),
     private val compositionEngine: StudioCompositionEngine = StudioCompositionEngine(context),
+    private val movingQuotesTemplate: CompositionTemplate = MovingQuotesTemplate(),
     private val tadhkirahTemplate: CompositionTemplate =
         TadhkirahMawidhaTemplate(CanvasOrnamentalFrameProvider()),
     private val naeemTemplate: CompositionTemplate =
-        NaeemZuhdTemplate(CanvasSunsetBackgroundProvider()),
-    private val movingQuotesTemplate: CompositionTemplate = MovingQuotesTemplate()
+        NaeemZuhdTemplate(CanvasSunsetBackgroundProvider())
 ) : VideoRenderService {
 
     private val quranAdapter by lazy { QuranRecitationExportAdapter(context) }
+
+    /**
+     * مزودات الموارد الخارجية (Pexels/Pixabay) — قابلة لإعادة الاستخدام
+     * عبر المشاريع، تُبنى مرة واحدة.
+     */
+    private val stockProviders by lazy { buildStockProviders() }
+
+    /**
+     * يبني مزودًا مركّبًا كاملًا لمشروع معيّن: يضيف أصول المستخدم المحلية
+     * (التي تحتاج المشروع) أمام مزودات الموارد الخارجية.
+     */
+    private fun buildProviderForProject(
+        project: VideoProject
+    ): com.example.domain.service.studio.resource.CompositeResourceProvider {
+        val local = com.example.domain.service.studio.resource.LocalResourceProvider(project)
+        return com.example.domain.service.studio.resource.CompositeResourceProvider(
+            listOf(local) + stockProviders
+        )
+    }
 
     /**
      * يختار مصدر لوحة القصة: قوالب خاصة حسب نمط التحرير (انظر [templateFor])،
@@ -60,13 +85,42 @@ class Media3VideoRenderService(
 
     /**
      * يختار القالب بناءً على نمط التحرير: "تأملي" ← تذكرة، "قصصي" ← النعيم والزهد،
-     * "اقتباسات مؤثرة" ← اقتباسات متحركة، وإلا المسار العام عبر [storyBuilder].
+     * "اقتباسات مؤثرة" ← اقتباسات متحركة، والأنماط العامة الستة لها قوالبها المتميّزة الآن،
+     * وإلا المسار العام عبر [storyBuilder].
      */
     private fun templateFor(style: EditingStyle): CompositionTemplate? = when (style) {
         EditingStyle.MEDITATIVE -> tadhkirahTemplate
         EditingStyle.STORYTELLING -> naeemTemplate
         EditingStyle.MOVING_QUOTES -> movingQuotesTemplate
+        // الأنماط العامة الستة تُوجَّه عبر دالة مستقلة قابلة للاختبار خالصة.
+        EditingStyle.CINEMATIC,
+        EditingStyle.DOCUMENTARY,
+        EditingStyle.EDUCATIONAL,
+        EditingStyle.FAST_REELS,
+        EditingStyle.SHORT_AD,
+        EditingStyle.ANIMATION -> templateForStyle(style)
         else -> null
+    }
+
+    companion object {
+        /**
+         * توجيه نمط التحرير إلى القالب المتميّز المقابل للأنماط العامة الستة.
+         * مُستخرَجة كدالة مستقلة (تبني القوالب داخليًا) لتمكين اختبار التكامل
+         * دون الحاجة إلى Android Context أو مثال الخدمة.
+         *
+         * ملاحظة: الأنماط الخاصة (MEDITATIVE/STORYTELLING/MOVING_QUOTES) تُبنى داخل
+         * الخدمة لأن بعضها يعتمد على مزودات Android (Canvas). الأنماط العامة الستة
+         * هنا لا تعتمد على Android، لذا يمكن اختبارها خالصة.
+         */
+        internal fun templateForStyle(style: EditingStyle): CompositionTemplate? = when (style) {
+            EditingStyle.CINEMATIC -> CinematicTemplate()
+            EditingStyle.DOCUMENTARY -> DocumentaryTemplate()
+            EditingStyle.EDUCATIONAL -> EducationalTemplate()
+            EditingStyle.FAST_REELS -> FastReelsTemplate()
+            EditingStyle.SHORT_AD -> ShortAdTemplate()
+            EditingStyle.ANIMATION -> AnimationTemplate()
+            else -> null
+        }
     }
 
     /**
@@ -112,7 +166,7 @@ class Media3VideoRenderService(
     }
 
     override suspend fun exportVideo(project: VideoProject): VideoExportResult {
-        val storyboard = try {
+        val rawStoryboard = try {
             resolveStoryboardSuspend(project)
         } catch (t: Throwable) {
             return VideoExportResult(
@@ -120,6 +174,18 @@ class Media3VideoRenderService(
                 message = "تعذّر بناء لوحة القصة: ${t.message ?: "خطأ غير معروف"}",
                 notice = "تأكد من وجود مشاهد ونصوص صالحة في المشروع."
             )
+        }
+
+        // حلّ نوايا الموارد: يستبدل الخلفيات اللونية بصور/فيديوهات حقيقية
+        // متى ما توفّرت (محليًا أو من Pexels/Pixabay). لا يفشل أبدًا —
+        // إن لم يجد موردًا يُبقي الخلفية اللونية الاحتياطية.
+        val storyboard = try {
+            val resolver = com.example.domain.service.studio.resource.SceneResourceResolver(
+                buildProviderForProject(project)
+            )
+            resolver.resolve(rawStoryboard, project)
+        } catch (_: Throwable) {
+            rawStoryboard
         }
 
         val outputFile = File(
@@ -156,5 +222,40 @@ class Media3VideoRenderService(
         } else {
             String.format(java.util.Locale.US, "%.1f MB", kb / 1024.0)
         }
+    }
+
+    /**
+     * يبني مزودات الموارد الخارجية (Pexels ثم Pixabay) مع ذاكرة مؤقتة محلية.
+     *
+     * مفاتيح Pexels/Pixabay تُقرأ من BuildConfig (المولّدة من .env عبر
+     * Secrets Plugin). إن كانت فارغة، يُعطّل المزود الخارجي تلقائيًا
+     * ويعمل التصدير بالخلفيات اللونية بدون إنترنت.
+     */
+    private fun buildStockProviders(): List<com.example.domain.service.studio.resource.MediaResourceProvider> {
+        val cacheDir = File(context.cacheDir, "stock_media")
+        val cache = com.example.domain.service.studio.resource.StockMediaCache(cacheDir)
+        val pexelsKey = readBuildConfigField("PEXELS_API_KEY")
+        val pixabayKey = readBuildConfigField("PIXABAY_API_KEY")
+
+        return listOfNotNull(
+            com.example.domain.service.studio.resource.PexelsResourceProvider(
+                apiKeyProvider = { pexelsKey },
+                cache = cache
+            ).takeIf { it.isAvailable },
+            com.example.domain.service.studio.resource.PixabayResourceProvider(
+                apiKeyProvider = { pixabayKey },
+                cache = cache
+            ).takeIf { it.isAvailable }
+        )
+    }
+
+    /**
+     * يقرأ حقلًا نصيًا من BuildConfig بأمان (يعيد نصًا فارغًا إن لم يُوجد).
+     */
+    private fun readBuildConfigField(name: String): String {
+        return runCatching {
+            val field = com.example.BuildConfig::class.java.getField(name)
+            field.get(null) as? String ?: ""
+        }.getOrDefault("")
     }
 }

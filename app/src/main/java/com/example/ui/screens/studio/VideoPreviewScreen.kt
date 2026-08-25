@@ -200,7 +200,7 @@ fun VideoPreviewScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "معاينة حقيقية للوحة القصة والتسلسل الزمني والموارد. التصدير الفعلي لملف MP4 سيتاح لاحقًا.",
+                            text = "معاينة لوحة القصة والتسلسل الزمني والموارد. التصدير إلى MP4 محلي وجاهز — يعمل بدون إنترنت، ويستخدم موارد Pexels/Pixabay تلقائيًا إن وُجد مفتاح.",
                             color = Color.White.copy(alpha = 0.9f),
                             fontSize = 12.sp,
                             lineHeight = 16.sp
@@ -510,7 +510,7 @@ fun VideoPreviewScreen(
                 text = {
                     Column {
                         Text(
-                            text = exportNotice?.message ?: "وظيفة تصدير ملف الفيديو الفعلي قيد التطوير وستتاح في تحديث قادم.",
+                            text = exportNotice?.message ?: "التصدير جاهز: اضغط زر التصدير لإنتاج ملف MP4 محلي. يعمل بدون إنترنت وبدون مفاتيح API.",
                             color = Color.White,
                             fontSize = 14.sp
                         )

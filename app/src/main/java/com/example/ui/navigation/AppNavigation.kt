@@ -71,6 +71,90 @@ private fun rememberStudioViewModel(): StudioViewModel {
 }
 
 @Composable
+private fun rememberKnowledgeViewModel(): com.example.ui.screens.knowledge.KnowledgeViewModel {
+    val owner = checkNotNull(LocalViewModelStoreOwner.current) {
+        "A ViewModelStoreOwner is required for KnowledgeViewModel"
+    }
+    val application = LocalContext.current.applicationContext as android.app.Application
+    // KnowledgeViewModel لها معامل repository افتراضي؛ الاعتماد على الانعكاس
+    // الافتراضي عبر AndroidViewModelFactory يفشل بـ NoSuchMethodException.
+    return remember(owner, application) {
+        ViewModelProvider(
+            owner,
+            object : ViewModelProvider.Factory {
+                override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
+                    @Suppress("UNCHECKED_CAST")
+                    return com.example.ui.screens.knowledge.KnowledgeViewModel(application) as T
+                }
+            }
+        ).get(com.example.ui.screens.knowledge.KnowledgeViewModel::class.java)
+    }
+}
+
+@Composable
+private fun rememberImpactViewModel(): com.example.ui.screens.impact.ImpactViewModel {
+    val owner = checkNotNull(LocalViewModelStoreOwner.current) {
+        "A ViewModelStoreOwner is required for ImpactViewModel"
+    }
+    val application = LocalContext.current.applicationContext as android.app.Application
+    // ImpactViewModel لها معامل repository افتراضي؛ الاعتماد على الانعكاس
+    // الافتراضي عبر AndroidViewModelFactory يفشل بـ NoSuchMethodException.
+    return remember(owner, application) {
+        ViewModelProvider(
+            owner,
+            object : ViewModelProvider.Factory {
+                override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
+                    @Suppress("UNCHECKED_CAST")
+                    return com.example.ui.screens.impact.ImpactViewModel(application) as T
+                }
+            }
+        ).get(com.example.ui.screens.impact.ImpactViewModel::class.java)
+    }
+}
+
+@Composable
+private fun rememberAuthViewModel(): com.example.ui.AuthViewModel {
+    val owner = checkNotNull(LocalViewModelStoreOwner.current) {
+        "A ViewModelStoreOwner is required for AuthViewModel"
+    }
+    val application = LocalContext.current.applicationContext as android.app.Application
+    // AuthViewModel لها معاملات repositories افتراضية؛ الاعتماد على الانعكاس
+    // الافتراضي عبر AndroidViewModelFactory يفشل بـ NoSuchMethodException.
+    return remember(owner, application) {
+        ViewModelProvider(
+            owner,
+            object : ViewModelProvider.Factory {
+                override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
+                    @Suppress("UNCHECKED_CAST")
+                    return com.example.ui.AuthViewModel(application) as T
+                }
+            }
+        ).get(com.example.ui.AuthViewModel::class.java)
+    }
+}
+
+@Composable
+private fun rememberCompanionViewModel(): com.example.ui.CompanionViewModel {
+    val owner = checkNotNull(LocalViewModelStoreOwner.current) {
+        "A ViewModelStoreOwner is required for CompanionViewModel"
+    }
+    val application = LocalContext.current.applicationContext as android.app.Application
+    // CompanionViewModel لها معامل repository افتراضي؛ الاعتماد على الانعكاس
+    // الافتراضي عبر AndroidViewModelFactory يفشل بـ NoSuchMethodException.
+    return remember(owner, application) {
+        ViewModelProvider(
+            owner,
+            object : ViewModelProvider.Factory {
+                override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
+                    @Suppress("UNCHECKED_CAST")
+                    return com.example.ui.CompanionViewModel(application) as T
+                }
+            }
+        ).get(com.example.ui.CompanionViewModel::class.java)
+    }
+}
+
+@Composable
 fun AppNavigation(
     navController: NavHostController,
     startDestination: String
@@ -209,12 +293,13 @@ fun AppNavigation(
 
         composable(Routes.COMPANION) {
             CompanionScreen(
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                companionViewModel = rememberCompanionViewModel()
             )
         }
 
         composable(Routes.KNOWLEDGE) {
-            val knowledgeViewModel: com.example.ui.screens.knowledge.KnowledgeViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+            val knowledgeViewModel = rememberKnowledgeViewModel()
             com.example.ui.screens.knowledge.KnowledgeHomeScreen(
                 navController = navController,
                 onBack = { navController.popBackStack() },
@@ -224,7 +309,7 @@ fun AppNavigation(
         
         composable("knowledge_article/{articleId}") { backStackEntry ->
             val articleId = backStackEntry.arguments?.getString("articleId") ?: return@composable
-            val knowledgeViewModel: com.example.ui.screens.knowledge.KnowledgeViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+            val knowledgeViewModel = rememberKnowledgeViewModel()
             com.example.ui.screens.knowledge.KnowledgeArticleScreen(
                 articleId = articleId,
                 navController = navController,
@@ -234,7 +319,7 @@ fun AppNavigation(
         }
 
         composable(Routes.IMPACT) {
-            val impactViewModel: com.example.ui.screens.impact.ImpactViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+            val impactViewModel = rememberImpactViewModel()
             com.example.ui.screens.impact.ImpactHomeScreen(
                 navController = navController,
                 onBack = { navController.popBackStack() },
@@ -244,7 +329,7 @@ fun AppNavigation(
         
         composable("impact_detail/{initiativeId}") { backStackEntry ->
             val initiativeId = backStackEntry.arguments?.getString("initiativeId") ?: return@composable
-            val impactViewModel: com.example.ui.screens.impact.ImpactViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+            val impactViewModel = rememberImpactViewModel()
             com.example.ui.screens.impact.ImpactDetailScreen(
                 initiativeId = initiativeId,
                 navController = navController,
@@ -261,7 +346,7 @@ fun AppNavigation(
         }
 
         composable(Routes.PROFILE) {
-            val authViewModel: com.example.ui.AuthViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+            val authViewModel = rememberAuthViewModel()
             ProfileScreen(
                 onBack = { navController.popBackStack() },
                 onNavigateToSettings = {
@@ -279,7 +364,7 @@ fun AppNavigation(
         
         composable(Routes.ADMIN) {
             val context = androidx.compose.ui.platform.LocalContext.current
-            val authViewModel: com.example.ui.AuthViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+            val authViewModel = rememberAuthViewModel()
             val user = authViewModel.uiState.value.user
             
             if (user != null && (user.role == com.example.domain.model.UserRole.DEVELOPER || user.role == com.example.domain.model.UserRole.SUPER_ADMIN)) {

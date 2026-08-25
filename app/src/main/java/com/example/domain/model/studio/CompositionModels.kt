@@ -91,11 +91,13 @@ data class BackgroundLayer(
     val type: BackgroundType = BackgroundType.SOLID_COLOR,
     val colorArgb: Int = 0xFF0B1020.toInt(),
     val staticImage: Bitmap? = null,
-    val videoUri: String? = null
+    val videoUri: String? = null,
+    /** مسار ملف صورة محلي (مُنزّل أو اختاره المستخدم) — يُستخدم عند type=IMAGE. */
+    val imageUri: String? = null
 ) {
     fun isUsable(): Boolean = when (type) {
         BackgroundType.SOLID_COLOR -> true
-        BackgroundType.IMAGE -> staticImage != null || !videoUri.isNullOrBlank()
+        BackgroundType.IMAGE -> staticImage != null || !videoUri.isNullOrBlank() || !imageUri.isNullOrBlank()
         BackgroundType.VIDEO -> !videoUri.isNullOrBlank()
     }
 }
@@ -114,7 +116,14 @@ data class CompositionScene(
     val textLayers: List<TextLayer> = emptyList(),
     val overlayLayers: List<ImageOverlayLayer> = emptyList(),
     val transitionMs: Long = 400L,
-    val dynamicOverlay: androidx.media3.effect.BitmapOverlay? = null
+    val dynamicOverlay: androidx.media3.effect.BitmapOverlay? = null,
+    /**
+     * نيّة مورد بصري يطلبها القالب لهذا المشهد. تُحلّ لاحقًا بواسطة
+     * [com.example.domain.service.studio.resource.SceneResourceResolver]:
+     * إن وُجد مورد محلي/خارجي مطابق تُستبدل الخلفية اللونية بصورة/فيديو،
+     * وإلا تبقى الخلفية اللونية الاحتياطية.
+     */
+    val resourceIntent: ResourceIntent? = null
 ) {
     init {
         require(durationMs > 0) { "durationMs must be positive" }

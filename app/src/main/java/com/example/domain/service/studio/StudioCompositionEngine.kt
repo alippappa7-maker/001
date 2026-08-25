@@ -114,8 +114,9 @@ class StudioCompositionEngine(
                 MediaItem.fromUri(Uri.parse(uri))
             }
             BackgroundType.IMAGE -> {
-                // إن وُجد Bitmap في الذاكرة، نكتبه إلى ملف مؤقت ونستخدمه كخلفية صورة.
+                // أولوية: Bitmap في الذاكرة ← مسار صورة محلي ← رابط فيديو ← لون صلب.
                 val bitmapUri = scene.background.staticImage?.let { writeBitmapToCache(it, scene.id) }
+                    ?: scene.background.imageUri
                     ?: scene.background.videoUri
                 if (bitmapUri != null) {
                     MediaItem.Builder().setUri(Uri.parse(bitmapUri)).setImageDurationMs(scene.durationMs).build()

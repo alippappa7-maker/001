@@ -1,6 +1,8 @@
 package com.example.ui.screens
 
 import android.provider.Settings
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -59,6 +61,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -123,7 +126,10 @@ fun HomeScreen(
         StarryBackground(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .padding(paddingValues),
+            starCount = 80,
+            enableCinematicAurora = true,
+            enableMeteors = true
         ) {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
@@ -293,6 +299,21 @@ fun OrbitalSystem(navController: NavController, uiState: com.example.domain.mode
             label = "rotation"
         )
 
+        // نبضة تنفس لطيفة لتوهج المركز (تُحرك الشفافية/النصف فقط — لا تؤثر على القياس).
+        val glowPulse by if (!reduceMotionEnabled) {
+            infiniteTransition.animateFloat(
+                initialValue = 0.82f,
+                targetValue = 1.0f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(5200, easing = androidx.compose.animation.core.FastOutSlowInEasing),
+                    repeatMode = RepeatMode.Reverse
+                ),
+                label = "glowPulse"
+            )
+        } else {
+            remember { androidx.compose.runtime.mutableFloatStateOf(1f) }
+        }
+
         Box(
             modifier = Modifier
                 .size(containerSize)
@@ -308,8 +329,8 @@ fun OrbitalSystem(navController: NavController, uiState: com.example.domain.mode
                 drawCircle(
                     brush = Brush.radialGradient(
                         colors = listOf(
-                            colors.gold.copy(alpha = 0.18f),
-                            Color(0xFF0F2238).copy(alpha = 0.12f),
+                            colors.gold.copy(alpha = 0.18f * glowPulse),
+                            Color(0xFF0F2238).copy(alpha = 0.12f * glowPulse),
                             Color.Transparent
                         ),
                         center = center,
@@ -416,9 +437,29 @@ fun OrbitalSystem(navController: NavController, uiState: com.example.domain.mode
                 val offsetX = (orbitRadius.value * cos(angleRad)).toFloat()
                 val offsetY = (orbitRadius.value * sin(angleRad)).toFloat()
 
+                // دخول متدرج: كل كوكب يتلاشى ويكبر بتأخير حسب ترتيبه.
+                val reveal = remember(index) { Animatable(0f) }
+                androidx.compose.runtime.LaunchedEffect(index) {
+                    if (!reduceMotionEnabled) {
+                        kotlinx.coroutines.delay(index * 90L)
+                        reveal.animateTo(
+                            targetValue = 1f,
+                            animationSpec = tween(durationMillis = 480, easing = FastOutSlowInEasing)
+                        )
+                    } else {
+                        reveal.snapTo(1f)
+                    }
+                }
+                val revealScale = 0.85f + 0.15f * reveal.value
+
                 Box(
                     modifier = Modifier
                         .offset(x = offsetX.dp, y = offsetY.dp)
+                        .graphicsLayer {
+                            alpha = reveal.value
+                            scaleX = revealScale
+                            scaleY = revealScale
+                        }
                         .testTag(orbData.testTag),
                     contentAlignment = Alignment.Center
                 ) {

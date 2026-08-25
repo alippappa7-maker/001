@@ -32,15 +32,25 @@ data class CompassUiState(
     val location: Location? = null,
     val sensorAccuracy: Int = SensorManager.SENSOR_STATUS_UNRELIABLE,
     val isCalibrating: Boolean = false,
-    val manualCityMode: Boolean = false
+    val manualCityMode: Boolean = false,
+    val initializationError: String? = null
 )
 
 class CompassViewModel(application: Application) : AndroidViewModel(application), SensorEventListener {
-    private val fusedLocationClient = LocationServices.getFusedLocationProviderClient(application)
-    private val sensorManager = application.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+    // تُغلَّف تهيئة خدمات الموقع والمستشعرات في try/catch لأن بعض الأجهزة
+    // (مثل تلك بدون Google Play Services أو بدون مستشعرات بوصلة) قد ترمي
+    // استثناءً عند الإنشاء، مما يسبب كراشًا فوريًا عند فتح شاشة البوصلة.
+    private val fusedLocationClient: com.google.android.gms.location.FusedLocationProviderClient? =
+        runCatching {
+            LocationServices.getFusedLocationProviderClient(application)
+        }.getOrNull()
+    private val sensorManager: SensorManager =
+        application.getSystemService(Context.SENSOR_SERVICE) as SensorManager
     
-    private val rotationSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
-        ?: sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
+    private val rotationSensor = runCatching {
+        sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
+            ?: sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
+    }.getOrNull()
 
     private val _uiState = MutableStateFlow(CompassUiState())
     val uiState: StateFlow<CompassUiState> = _uiState.asStateFlow()
@@ -79,15 +89,18 @@ class CompassViewModel(application: Application) : AndroidViewModel(application)
     @SuppressLint("MissingPermission")
     private fun startLocationUpdates() {
         if (isListeningToLocation) return
+        val client = fusedLocationClient ?: return
         
-        fusedLocationClient.lastLocation.addOnSuccessListener { loc ->
+        client.lastLocation.addOnSuccessListener { loc ->
             loc?.let { updateLocation(it) }
+        }.addOnFailureListener {
+            _uiState.update { it.copy(initializationError = it.initializationError ?: "تعذّر الوصول إلى خدمات الموقع") }
         }
 
         val locationRequest = LocationRequest.Builder(Priority.PRIORITY_BALANCED_POWER_ACCURACY, 10000)
             .build()
 
-        fusedLocationClient.requestLocationUpdates(
+        client.requestLocationUpdates(
             locationRequest,
             locationCallback,
             Looper.getMainLooper()
@@ -109,7 +122,7 @@ class CompassViewModel(application: Application) : AndroidViewModel(application)
     fun stopSensors() {
         if (!isListeningToSensors) return
         sensorManager.unregisterListener(this)
-        fusedLocationClient.removeLocationUpdates(locationCallback)
+        fusedLocationClient?.removeLocationUpdates(locationCallback)
         isListeningToSensors = false
         isListeningToLocation = false
     }

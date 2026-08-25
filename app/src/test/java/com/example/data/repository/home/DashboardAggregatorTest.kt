@@ -12,6 +12,7 @@ import com.example.domain.model.Zikr
 import com.example.domain.model.content.ContentCategory
 import com.example.domain.model.content.ContentItem
 import com.example.domain.model.content.ContentValidationResult
+import com.example.domain.model.studio.StyleSignature
 import com.example.domain.model.studio.VideoProject
 import com.example.domain.repository.ContentRepository
 import kotlinx.coroutines.flow.Flow
@@ -41,6 +42,10 @@ class DashboardAggregatorTest {
             override suspend fun getProjectById(id: String): VideoProject? = null
             override suspend fun saveProject(project: VideoProject) {}
             override suspend fun deleteProject(id: String) {}
+            override fun getAllStyleReferences(): Flow<List<StyleSignature>> = kotlinx.coroutines.flow.flowOf(emptyList())
+            override suspend fun getStyleReferenceById(id: String): StyleSignature? = null
+            override suspend fun saveStyleReference(signature: StyleSignature) {}
+            override suspend fun deleteStyleReference(id: String) {}
         }
 
         val mihrabRepo = object : MihrabRepository {
@@ -184,6 +189,10 @@ class DashboardAggregatorTest {
             override suspend fun getProjectById(id: String): VideoProject? = null
             override suspend fun saveProject(project: VideoProject) {}
             override suspend fun deleteProject(id: String) {}
+            override fun getAllStyleReferences(): Flow<List<StyleSignature>> = kotlinx.coroutines.flow.flowOf(emptyList())
+            override suspend fun getStyleReferenceById(id: String): StyleSignature? = null
+            override suspend fun saveStyleReference(signature: StyleSignature) {}
+            override suspend fun deleteStyleReference(id: String) {}
         }
         val robustAggregator = DashboardAggregator(
             failingStudioRepo,

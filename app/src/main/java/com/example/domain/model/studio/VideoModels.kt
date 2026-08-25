@@ -221,7 +221,8 @@ data class VideoPlan(
     val requiredResources: List<String> = emptyList(),
     val suggestedTexts: List<String> = emptyList(),
     val missingQuestions: List<String> = emptyList(),
-    val scenes: List<VideoScene> = emptyList()
+    val scenes: List<VideoScene> = emptyList(),
+    val appliedStyleSignature: StyleSignature? = null
 )
 
 @JsonClass(generateAdapter = true)
@@ -242,4 +243,5 @@ data class VideoProject(
     val currentJob: VideoGenerationJob? = null,
     val errorMessage: String? = null
 )
+
 

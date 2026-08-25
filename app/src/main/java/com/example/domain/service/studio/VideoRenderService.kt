@@ -1,5 +1,7 @@
 package com.example.domain.service.studio
 
+import com.example.domain.model.quran.RecitationTimeline
+import com.example.domain.model.quran.SourceCard
 import com.example.domain.model.studio.FallbackResourceMode
 import com.example.domain.model.studio.VideoProject
 
@@ -37,6 +39,25 @@ interface VideoRenderService {
      * Query whether real hardware/server MP4 rendering is currently active.
      */
     fun isRealExportAvailable(): Boolean
+
+    /**
+     * تصدير تلاوة قرآنية مزامَنة كلمة بكلمة بتظليل متعدد الطبقات (وضع قبس الذكي)
+     * مع بطاقة المصدر داخل الفيديو. يُفعّل بوابة التحقق الشرعي
+     * [com.example.domain.model.quran.ShariaExportValidator] قبل التصدير —
+     * أي فشل في التحقق يمنع التصدير تمامًا.
+     *
+     * التطبيق الافتراضي يعلن عدم الدعم، لكي لا تُكسر المحركات التي لا تدعم
+     * مسار التلاوة (مثل [LocalVideoRenderService]).
+     */
+    suspend fun exportRecitation(
+        timeline: RecitationTimeline,
+        sourceCard: SourceCard,
+        audioFile: java.io.File
+    ): VideoExportResult = VideoExportResult(
+        isAvailable = false,
+        message = "تصدير التلاوة المزامَنة غير مدعوم في هذا المحرك.",
+        notice = "استخدم Media3VideoRenderService لدعم تصدير التلاوة الفعلي."
+    )
 }
 
 /**

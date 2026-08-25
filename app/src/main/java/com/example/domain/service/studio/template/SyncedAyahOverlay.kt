@@ -7,22 +7,27 @@ package com.example.domain.service.studio.template
 import android.graphics.Bitmap
 import androidx.media3.effect.BitmapOverlay
 import androidx.media3.effect.OverlaySettings
-import com.example.domain.model.quran.RecitationTimeline
+import com.example.domain.model.quran.PhraseTimeline
+import com.example.domain.model.quran.WordVisualState
 import com.example.domain.service.studio.TextBitmapRenderer
 
 /**
  * طبقة آية متزامنة مع التلاوة: ترث [BitmapOverlay] وتتجاوز [getBitmap]
- * لإرجاع Bitmap الآية مع تظليل الكلمة النشطة في تلك اللحظة.
+ * لإرجاع Bitmap الآية مع تظليل متعدد الطبقات (وضع قبس الذكي) في تلك اللحظة.
  *
- * النمط من [AnimatedTextOverlay]: المحتوى يبدّل عبر [getBitmap] حسب
- * presentationTimeUs، بينما يبقى الموضع ثابتًا عبر [getOverlaySettings].
+ * بدل إضاءة كلمة واحدة فقط، نستخدم [PhraseTimeline.visualStatesAt] لتحديد
+ * حالة كل كلمة (ACTIVE / CURRENT / PAST) وفق إيقاع الوقفات الفعلية بين
+ * الكلمات، ثم نُرجع الـ Bitmap المُجهَّز مسبقًا لتلك الحالة البصرية.
  *
  * لتفادي إعادة رسم Bitmap لكل إطار (مكلف)، نخزّن مسبقًا Bitmap لكل كلمة
- * ممكنة + Bitmap لفترة "لا توجد كلمة نشطة" (كل الكلمات بلونها العادي)،
- * ثم نختار المناسب فقط. عدد الكلمات صغير جدًا (نادرًا يتجاوز 30)،
- * لذا التكلفة الإجمالية معقولة، والذاكرة محدودة أيضًا.
+ * نشطة ممكنة (يُحسب لها التظليل الكامل متعدد الطبقات عند لحظة نشاطها)،
+ * بالإضافة إلى Bitmap لحالة "لا توجد كلمة نشطة" (كل الكلمات PAST).
+ * عدد الكلمات صغير جدًا (نادرًا يتجاوز 30)، لذا التكلفة معقولة.
  *
- * @param timeline خط زمني التلاوة المبني من [QuranRepository].
+ * منطق اختيار الـ Bitmap المناسب للّحظة معزول في [activeBitmapIndexFor]
+ * (دالة خالصة بدون أي اعتماد على أندرويد) ليُختبَر على مستوى JVM مباشرة.
+ *
+ * @param phraseTimeline خط زمني التلاوة الموزّع إلى عبارات (من [RecitationCueDetector]).
  * @param renderer منشئ Bitmap للنص العربي (يضمن التشكيل وRTL).
  * @param videoWidth عرض الفيديو الهدف.
  * @param videoHeight ارتفاع الفيديو الهدف.
@@ -30,7 +35,7 @@ import com.example.domain.service.studio.TextBitmapRenderer
  * @param baseAnchorY إحداثي Y النسبي لموضع الآية داخل الإطار.
  */
 class SyncedAyahOverlay(
-    private val timeline: RecitationTimeline,
+    private val phraseTimeline: PhraseTimeline,
     private val renderer: TextBitmapRenderer,
     private val videoWidth: Int,
     private val videoHeight: Int,
@@ -38,14 +43,10 @@ class SyncedAyahOverlay(
     private val baseAnchorY: Float = 0f
 ) : BitmapOverlay() {
 
-    // قائمة الكلمات بالترتيب (نص فقط).
-    private val wordTexts: List<String> = timeline.words.map { it.text }
+    // قائمة نصوص الكلمات بالترتيب (مصدرها الخط الزمني الأساسي).
+    private val wordTexts: List<String> = phraseTimeline.timeline.words.map { it.text }
 
-    // خرائط الكلمات (position -> index 0-based) لتسريع البحث.
-    private val positionToIndex: Map<Int, Int> =
-        timeline.words.mapIndexed { idx, w -> w.position to idx }.toMap()
-
-    // تخزين Bitmap مسبقًا لكل كلمة نشطة ممكنة + حالة "لا توجد كلمة".
+    // Bitmap مُجهَّز مسبقًا لكل كلمة نشطة ممكنة + حالة "بلا كلمة نشطة".
     private val bitmapsByIndex: List<Bitmap> by lazy { preRenderBitmaps() }
 
     // إعداد التراكب ثابت: لا نُنشئ OverlaySettings في كل إطار (تفاديًا للأداء).
@@ -56,30 +57,36 @@ class SyncedAyahOverlay(
         .build()
 
     private fun preRenderBitmaps(): List<Bitmap> {
-        val total = wordTexts.size + 1 // +1 للحالة بلا تظليل
-        val result = ArrayList<Bitmap>(total)
-        // index 0..n-1 = تظليل الكلمة رقم index، index n = لا تظليل.
+        val n = wordTexts.size
+        val result = ArrayList<Bitmap>(n + 1)
+        // index 0..n-1 = حالة نشاط الكلمة رقم index (مع تظليلها متعدد الطبقات الكامل).
         for (i in wordTexts.indices) {
-            result.add(renderForIndex(i))
+            val states = phraseTimeline.visualStatesAt(phraseTimeline.timeline.words[i].startMs)
+            result.add(
+                renderer.renderWithVisualStates(
+                    words = wordTexts,
+                    visualStates = states,
+                    videoWidth = videoWidth,
+                    videoHeight = videoHeight
+                )
+            )
         }
-        result.add(renderForIndex(-1))
+        // index n = لا توجد كلمة نشطة (كل الكلمات PAST، قبل بداية أول كلمة).
+        val beforeFirst = phraseTimeline.timeline.words.first().startMs - 1
+        result.add(
+            renderer.renderWithVisualStates(
+                words = wordTexts,
+                visualStates = phraseTimeline.visualStatesAt(beforeFirst),
+                videoWidth = videoWidth,
+                videoHeight = videoHeight
+            )
+        )
         return result
     }
 
-    private fun renderForIndex(activeIndex: Int): Bitmap =
-        renderer.renderHighlighted(
-            words = wordTexts,
-            activeWordIndex = activeIndex,
-            videoWidth = videoWidth,
-            videoHeight = videoHeight
-        )
-
     override fun getBitmap(presentationTimeUs: Long): Bitmap {
         val timeMs = presentationTimeUs / MS_PER_US
-        val activePosition = timeline.activeWordPositionAt(timeMs)
-        val index = activePosition?.let { positionToIndex[it] }
-            ?: wordTexts.size // الحالة بلا تظليل
-        return bitmapsByIndex[index]
+        return bitmapsByIndex[activeBitmapIndexFor(phraseTimeline, timeMs)]
     }
 
     override fun getOverlaySettings(presentationTimeUs: Long): OverlaySettings =
@@ -88,4 +95,19 @@ class SyncedAyahOverlay(
     private companion object {
         const val MS_PER_US = 1_000L
     }
+}
+
+/**
+ * يعيد فهرس الـ Bitmap المُجهَّز مسبقًا المناسب للّحظة [timeMs]:
+ * - إذا وُجدت كلمة نشطة (ACTIVE)، يعيد فهرسها (0-based ضمن الكلمات).
+ * - إذا لم توجد (قبل أول كلمة أو فجوة لا تُغطّيها سياسة الإبقاء)،
+ *   يعيد [PhraseTimeline.timeline.words].size (وهو فهرس خانة "بلا كلمة نشطة").
+ *
+ * دالة خالصة على المستوى الأعلى (لا تنتمي لـ [SyncedAyahOverlay] نفسه)
+ * كي تُختبَر على مستوى JVM دون تحميل صنف Media3 الأساسي.
+ */
+fun activeBitmapIndexFor(phraseTimeline: PhraseTimeline, timeMs: Long): Int {
+    val states = phraseTimeline.visualStatesAt(timeMs)
+    val activeIndex = states.indexOf(WordVisualState.ACTIVE)
+    return if (activeIndex >= 0) activeIndex else phraseTimeline.timeline.words.size
 }

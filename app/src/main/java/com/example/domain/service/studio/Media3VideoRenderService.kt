@@ -1,6 +1,11 @@
 package com.example.domain.service.studio
 
 import android.content.Context
+import android.media.MediaMetadataRetriever
+import com.example.domain.model.quran.RecitationCueDetector
+import com.example.domain.model.quran.RecitationTimeline
+import com.example.domain.model.quran.SourceCard
+import com.example.domain.model.quran.ShariaExportValidator
 import com.example.domain.model.studio.EditingStyle
 import com.example.domain.model.studio.FallbackResourceMode
 import com.example.domain.model.studio.VideoProject
@@ -9,6 +14,7 @@ import com.example.domain.service.studio.template.CanvasSunsetBackgroundProvider
 import com.example.domain.service.studio.template.CompositionTemplate
 import com.example.domain.service.studio.template.MovingQuotesTemplate
 import com.example.domain.service.studio.template.NaeemZuhdTemplate
+import com.example.domain.service.studio.template.QuranRecitationTemplate
 import com.example.domain.service.studio.template.TadhkirahMawidhaTemplate
 import java.io.File
 
@@ -129,9 +135,98 @@ class Media3VideoRenderService(
     }
 
     /**
+     * تصدير تلاوة قرآنية مزامَنة كلمة بكلمة بتظليل متعدد الطبقات (وضع قبس الذكي)،
+     * مع بطاقة المصدر داخل الفيديو. هذا هو الربط الفعلي للـ Overlay الجديد
+     * بمحرك التصدير: يُبنى [PhraseTimeline] عبر [RecitationCueDetector]، ثم
+     * يُحوَّل إلى [CompositionStoryboard] عبر [QuranRecitationTemplate]، ثم
+     * يُصدَّر كملف MP4 عبر [StudioCompositionEngine.export].
+     *
+     * بوابة [ShariaExportValidator] تُمنع أي تصدير لا يجتاز التحقق الشرعي:
+     * توقيت سليم + ملف صوت فعلي على القرص + مدة مطابقة + بطاقة مصدر كاملة.
+     * مدة الصوت الفعلية تُقرأ من الملف عبر [MediaMetadataRetriever]؛ إن تعذّر
+     * قراؤها يُمنع التصدير (fail-closed) لا يُسمح به.
+     */
+    override suspend fun exportRecitation(
+        timeline: RecitationTimeline,
+        sourceCard: SourceCard,
+        audioFile: File
+    ): VideoExportResult {
+        val report = ShariaExportValidator.validate(
+            timeline = timeline,
+            audioFile = audioFile,
+            actualAudioDurationMs = readAudioDurationMs(audioFile),
+            sourceCard = sourceCard
+        )
+        if (!report.isValid) {
+            return VideoExportResult(
+                isAvailable = true,
+                message = "منع التصدير: لم يجتز التحقق الشرعي.",
+                notice = report.errors.joinToString(" | ").ifBlank { "خطأ غير محدد في التحقق." }
+            )
+        }
+
+        val phraseTimeline = RecitationCueDetector.detect(timeline)
+        val textRenderer = TextBitmapRenderer(context)
+        val template = QuranRecitationTemplate(
+            textRenderer = textRenderer,
+            width = 720,
+            height = 1280,
+            audioUri = audioFile.toURI().toString()
+        )
+
+        val storyboard = try {
+            template.build(phraseTimeline, sourceCard)
+        } catch (t: Throwable) {
+            return VideoExportResult(
+                isAvailable = true,
+                message = "تعذّر بناء لوحة التلاوة: ${t.message ?: "خطأ غير معروف"}",
+                notice = "تأكد من صحة خط زمني التلاوة وبيانات بطاقة المصدر."
+            )
+        }
+
+        val outputFile = File(
+            outputDir,
+            "qabas_recitation_${System.currentTimeMillis()}.mp4"
+        )
+
+        return try {
+            compositionEngine.export(storyboard, outputFile)
+            VideoExportResult(
+                isAvailable = true,
+                exportPath = outputFile.absolutePath,
+                message = "تم تصدير التلاوة بنجاح إلى مساحة التطبيق.",
+                notice = "المسار: ${outputFile.absolutePath}. الحجم: ${formatBytes(outputFile.length())}."
+            )
+        } catch (t: Throwable) {
+            VideoExportResult(
+                isAvailable = true,
+                message = "تعذّر التصدير: ${t.message ?: "خطأ غير معروف في محرك التركيب"}",
+                notice = "تأكد من دعم الجهاز لترميز H.264 ومن صحة ملف الصوت."
+            )
+        }
+    }
+
+    /**
      * على عكس المحاكاة السابقة، التصدير الفعلي متاح الآن.
      */
     override fun isRealExportAvailable(): Boolean = true
+
+    /**
+     * يقرأ مدة ملف الصوت الفعلية من القرص. يعيد null إن تعذّر القراءة (fail-closed):
+     * أي فشل هنا يجعل [ShariaExportValidator] يرفض التصدير.
+     */
+    private fun readAudioDurationMs(audioFile: File): Long? {
+        val retriever = MediaMetadataRetriever()
+        return try {
+            retriever.setDataSource(audioFile.absolutePath)
+            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+                ?.toLongOrNull()
+        } catch (t: Throwable) {
+            null
+        } finally {
+            retriever.release()
+        }
+    }
 
     private fun formatBytes(bytes: Long): String {
         val kb = bytes / 1024.0

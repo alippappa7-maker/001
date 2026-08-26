@@ -12,6 +12,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -44,6 +45,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -80,7 +82,14 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import androidx.navigation.NavController
 import com.example.domain.model.studio.VideoOrientation
+import com.example.ui.components.QabasButton
+import com.example.ui.components.QabasButtonVariant
 import com.example.ui.navigation.Routes
+import com.example.ui.screens.studio.components.StudioGlassCard
+import com.example.ui.screens.studio.components.StudioSectionHeader
+import com.example.ui.screens.studio.components.StudioStatusChip
+import com.example.ui.screens.studio.components.StudioIconBadge
+import com.example.ui.screens.studio.components.studioBackgroundBrush
 import com.example.ui.theme.QabasDarkBackground
 import com.example.ui.theme.QabasGold
 import com.example.ui.theme.QabasGoldDark
@@ -147,7 +156,7 @@ fun VideoPreviewScreen(
                 TopAppBar(
                     title = {
                         Text(
-                            text = "معاينة لوحة المشاهد والمخطط",
+                            text = "معاينة الفيديو",
                             color = QabasGold,
                             fontWeight = FontWeight.Bold,
                             fontSize = 18.sp
@@ -187,58 +196,60 @@ fun VideoPreviewScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(QabasSurfaceDarkElevated, QabasDarkBackground, Color(0xFF04060A))
-                        )
-                    )
+                    .background(studioBackgroundBrush())
                     .verticalScroll(rememberScrollState())
-                    .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .padding(horizontal = 16.dp, vertical = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Disclaimer Banner explaining that this is an interactive storyboard preview (no fake mp4)
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 14.dp)
-                        .testTag("preview_notice_card"),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0x2BFFD54F)),
-                    border = CardDefaults.outlinedCardBorder().copy(
-                        brush = Brush.horizontalGradient(listOf(QabasGoldDark, QabasGold))
-                    )
+                // عنوان الشاشة + وصف موجز
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(
-                        modifier = Modifier.padding(12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Info,
-                            contentDescription = null,
-                            tint = QabasGold,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
+                    StudioIconBadge(
+                        icon = Icons.Default.AutoAwesome,
+                        size = 40.dp,
+                        iconSize = 22.dp
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "معاينة لوحة القصة والتسلسل الزمني والموارد. التصدير إلى MP4 محلي وجاهز — يعمل بدون إنترنت، ويستخدم موارد Pexels/Pixabay تلقائيًا إن وُجد مفتاح.",
-                            color = Color.White.copy(alpha = 0.9f),
-                            fontSize = 12.sp,
-                            lineHeight = 16.sp
+                            text = "فيديو حقيقي",
+                            color = Color.White,
+                            fontSize = 17.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "يُنتج عبر محرك Media3 ويُشغّل هنا مباشرة",
+                            color = Color.White.copy(alpha = 0.6f),
+                            fontSize = 12.sp
                         )
                     }
+                    StudioStatusChip(
+                        label = when (renderState) {
+                            is VideoRenderState.Ready -> "جاهز"
+                            VideoRenderState.Rendering -> "قيد الإنتاج"
+                            is VideoRenderState.Error -> "فشل"
+                            VideoRenderState.Idle -> "بانتظار"
+                        },
+                        color = when (renderState) {
+                            is VideoRenderState.Ready -> Color(0xFF4CAF50)
+                            VideoRenderState.Rendering -> QabasGold
+                            is VideoRenderState.Error -> MaterialTheme.colorScheme.error
+                            VideoRenderState.Idle -> Color.White.copy(alpha = 0.5f)
+                        }
+                    )
                 }
 
                 // ===== بطاقة الفيديو الحقيقي (نتيجة محرك Media3) =====
-                Card(
+                StudioGlassCard(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 16.dp)
                         .testTag("rendered_video_card"),
-                    shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF0B1220)),
-                    border = CardDefaults.outlinedCardBorder().copy(
-                        brush = Brush.linearGradient(listOf(QabasGold, QabasGoldDark))
-                    )
+                    gradientBorder = renderState is VideoRenderState.Ready,
+                    cornerRadius = 22.dp,
+                    contentPadding = PaddingValues(0.dp)
                 ) {
                     Box(
                         modifier = Modifier
@@ -260,14 +271,21 @@ fun VideoPreviewScreen(
                                 CircularProgressIndicator(color = QabasGold)
                                 Spacer(modifier = Modifier.height(12.dp))
                                 Text(
-                                    text = "جارٍ إنتاج الفيديو… محرك Media3 يرسم المشاهد الآن",
+                                    text = "جارٍ إنتاج الفيديو…",
                                     color = Color.White.copy(alpha = 0.85f),
                                     fontSize = 13.sp,
                                     textAlign = TextAlign.Center
                                 )
+                                Text(
+                                    text = "محرك Media3 يرسم المشاهد الآن",
+                                    color = Color.White.copy(alpha = 0.5f),
+                                    fontSize = 11.sp,
+                                    textAlign = TextAlign.Center
+                                )
                             }
                             is VideoRenderState.Error -> Column(
-                                horizontalAlignment = Alignment.CenterHorizontally
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier.padding(24.dp)
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Info,
@@ -289,7 +307,7 @@ fun VideoPreviewScreen(
                             }
                             VideoRenderState.Idle -> {
                                 Text(
-                                    text = "اضغط «تصدير الفيديو» لإنتاج MP4 حقيقي",
+                                    text = "سيُنتج الفيديو تلقائيًا",
                                     color = Color.White.copy(alpha = 0.6f),
                                     fontSize = 13.sp,
                                     textAlign = TextAlign.Center
@@ -299,17 +317,20 @@ fun VideoPreviewScreen(
                     }
                 }
 
-                // Interactive Storyboard Preview Canvas Box
-                Card(
+                // ===== معاينة المشهد (لوحة القصة التفاعلية) =====
+                StudioSectionHeader(
+                    title = "لوحة المشاهد",
+                    subtitle = "المشهد ${currentSceneIndex + 1} من ${scenes.size} — ${currentScene?.durationSeconds ?: 0} ثانية",
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                StudioGlassCard(
                     modifier = Modifier
-                        .fillMaxWidth(if (orientation == VideoOrientation.PORTRAIT) 0.85f else 1f)
-                        .padding(bottom = 16.dp)
+                        .fillMaxWidth()
                         .testTag("storyboard_canvas_card"),
-                    shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF0F1523)),
-                    border = CardDefaults.outlinedCardBorder().copy(
-                        brush = Brush.linearGradient(listOf(QabasGold.copy(alpha = 0.6f), QabasGoldDark))
-                    )
+                    gradientBorder = false,
+                    cornerRadius = 20.dp,
+                    contentPadding = PaddingValues(0.dp)
                 ) {
                     Box(
                         modifier = Modifier
@@ -319,8 +340,7 @@ fun VideoPreviewScreen(
                                 Brush.radialGradient(
                                     colors = listOf(Color(0xFF1E2846), Color(0xFF0A0F1D), Color(0xFF030509))
                                 )
-                            )
-                            .padding(16.dp),
+                            ),
                         contentAlignment = Alignment.Center
                     ) {
                         AnimatedContent(
@@ -330,126 +350,74 @@ fun VideoPreviewScreen(
                         ) { scene ->
                             if (scene != null) {
                                 Column(
-                                    modifier = Modifier.fillMaxSize(),
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(20.dp),
                                     horizontalAlignment = Alignment.CenterHorizontally,
                                     verticalArrangement = Arrangement.SpaceBetween
                                 ) {
-                                    // Top Badge: Scene Indicator & Duration
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        verticalAlignment = Alignment.CenterVertically
+                                    Box(
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(999.dp))
+                                            .background(QabasGold.copy(alpha = 0.2f))
+                                            .padding(horizontal = 10.dp, vertical = 4.dp)
                                     ) {
-                                        Box(
-                                            modifier = Modifier
-                                                .clip(RoundedCornerShape(8.dp))
-                                                .background(QabasGold.copy(alpha = 0.2f))
-                                                .padding(horizontal = 8.dp, vertical = 4.dp)
-                                        ) {
-                                            Text(
-                                                text = "المشهد ${currentSceneIndex + 1} من ${scenes.size}",
-                                                color = QabasGold,
-                                                fontSize = 11.sp,
-                                                fontWeight = FontWeight.Bold
-                                            )
-                                        }
-
-                                        Box(
-                                            modifier = Modifier
-                                                .clip(RoundedCornerShape(8.dp))
-                                                .background(Color.White.copy(alpha = 0.1f))
-                                                .padding(horizontal = 8.dp, vertical = 4.dp)
-                                        ) {
-                                            Text(
-                                                text = "${scene.durationSeconds} ثوانٍ",
-                                                color = Color.White.copy(alpha = 0.8f),
-                                                fontSize = 11.sp
-                                            )
-                                        }
+                                        Text(
+                                            text = "${currentSceneIndex + 1} / ${scenes.size}",
+                                            color = QabasGold,
+                                            fontSize = 11.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
                                     }
 
-                                    // Center Visual & On-Screen Typography
                                     Column(
-                                        horizontalAlignment = Alignment.CenterHorizontally,
-                                        modifier = Modifier.padding(horizontal = 8.dp)
+                                        horizontalAlignment = Alignment.CenterHorizontally
                                     ) {
                                         Icon(
                                             imageVector = Icons.Default.AutoAwesome,
                                             contentDescription = null,
                                             tint = QabasGold.copy(alpha = 0.7f),
-                                            modifier = Modifier.size(36.dp)
+                                            modifier = Modifier.size(32.dp)
                                         )
-
                                         Spacer(modifier = Modifier.height(12.dp))
-
-                                        // Prominent Display Typography for On-Screen Text
                                         Text(
-                                            text = scene.onScreenText.ifBlank { "نص المشهد التفاعلي" },
+                                            text = scene.onScreenText.ifBlank { "نص المشهد" },
                                             color = Color.White,
                                             fontWeight = FontWeight.Bold,
-                                            fontSize = 17.sp,
+                                            fontSize = 18.sp,
                                             textAlign = TextAlign.Center,
-                                            lineHeight = 24.sp,
+                                            lineHeight = 26.sp,
                                             modifier = Modifier.testTag("preview_scene_text")
                                         )
-
-                                        if (!scene.attachedAssetTitle.isNullOrBlank()) {
-                                            Spacer(modifier = Modifier.height(8.dp))
-                                            Box(
-                                                modifier = Modifier
-                                                    .clip(RoundedCornerShape(6.dp))
-                                                    .background(Color(0xFF2E7D32).copy(alpha = 0.35f))
-                                                    .border(1.dp, Color(0xFF81C784), RoundedCornerShape(6.dp))
-                                                    .padding(horizontal = 8.dp, vertical = 3.dp)
-                                            ) {
-                                                Text(
-                                                    text = "مورد مرفق: ${scene.attachedAssetTitle}",
-                                                    color = Color(0xFFA5D6A7),
-                                                    fontSize = 10.sp
-                                                )
-                                            }
-                                        }
                                     }
 
-                                    // Bottom Voiceover / Transition Note
-                                    Column(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalAlignment = Alignment.CenterHorizontally
-                                    ) {
-                                        if (scene.voiceoverText.isNotBlank()) {
-                                            Row(
-                                                verticalAlignment = Alignment.CenterVertically,
-                                                horizontalArrangement = Arrangement.Center
-                                            ) {
-                                                Icon(
-                                                    imageVector = Icons.Default.RecordVoiceOver,
-                                                    contentDescription = null,
-                                                    tint = QabasGoldLight,
-                                                    modifier = Modifier.size(14.dp)
-                                                )
-                                                Spacer(modifier = Modifier.width(4.dp))
-                                                Text(
-                                                    text = scene.voiceoverText,
-                                                    color = Color.White.copy(alpha = 0.75f),
-                                                    fontSize = 11.sp,
-                                                    textAlign = TextAlign.Center,
-                                                    maxLines = 2
-                                                )
-                                            }
+                                    if (scene.voiceoverText.isNotBlank()) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.Center
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.RecordVoiceOver,
+                                                contentDescription = null,
+                                                tint = QabasGoldLight,
+                                                modifier = Modifier.size(14.dp)
+                                            )
+                                            Spacer(modifier = Modifier.width(4.dp))
+                                            Text(
+                                                text = scene.voiceoverText,
+                                                color = Color.White.copy(alpha = 0.7f),
+                                                fontSize = 11.sp,
+                                                textAlign = TextAlign.Center,
+                                                maxLines = 2
+                                            )
                                         }
-
-                                        Spacer(modifier = Modifier.height(4.dp))
-
-                                        Text(
-                                            text = "انتقال: ${scene.transition}",
-                                            color = Color.White.copy(alpha = 0.4f),
-                                            fontSize = 10.sp
-                                        )
+                                    } else {
+                                        Spacer(modifier = Modifier.height(14.dp))
                                     }
                                 }
                             } else {
                                 Text(
-                                    text = "لا توجد مشاهد متاحة للمعاينة",
+                                    text = "لا توجد مشاهد",
                                     color = Color.White.copy(alpha = 0.6f),
                                     fontSize = 13.sp
                                 )
@@ -458,129 +426,96 @@ fun VideoPreviewScreen(
                     }
                 }
 
-                // Scene Playback Controls
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 16.dp)
-                        .testTag("preview_controls_card"),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF131B2D))
+                // ===== أدوات التحكم بالتشغيل =====
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                    IconButton(
+                        onClick = { if (currentSceneIndex > 0) currentSceneIndex -= 1 },
+                        enabled = currentSceneIndex > 0,
+                        modifier = Modifier.testTag("preview_prev_button")
                     ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceEvenly,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            IconButton(
-                                onClick = {
-                                    if (currentSceneIndex > 0) currentSceneIndex -= 1
-                                },
-                                enabled = currentSceneIndex > 0,
-                                modifier = Modifier.testTag("preview_prev_button")
-                            ) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = "المشهد السابق",
-                                    tint = if (currentSceneIndex > 0) QabasGold else Color.White.copy(alpha = 0.2f)
-                                )
-                            }
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "السابق",
+                            tint = if (currentSceneIndex > 0) QabasGold else Color.White.copy(alpha = 0.2f)
+                        )
+                    }
 
-                            Box(
-                                modifier = Modifier
-                                    .size(54.dp)
-                                    .clip(CircleShape)
-                                    .background(QabasGold)
-                                    .clickable { isPlaying = !isPlaying }
-                                    .testTag("preview_play_toggle_button"),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                                    contentDescription = if (isPlaying) "إيقاف مؤقت" else "تشغيل المعاينة",
-                                    tint = QabasDarkBackground,
-                                    modifier = Modifier.size(30.dp)
-                                )
-                            }
+                    Box(
+                        modifier = Modifier
+                            .size(56.dp)
+                            .clip(CircleShape)
+                            .background(QabasGold)
+                            .clickable { isPlaying = !isPlaying }
+                            .testTag("preview_play_toggle_button"),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                            contentDescription = if (isPlaying) "إيقاف" else "تشغيل",
+                            tint = QabasDarkBackground,
+                            modifier = Modifier.size(30.dp)
+                        )
+                    }
 
-                            IconButton(
-                                onClick = {
-                                    if (currentSceneIndex < scenes.size - 1) currentSceneIndex += 1
-                                },
-                                enabled = currentSceneIndex < scenes.size - 1,
-                                modifier = Modifier.testTag("preview_next_button")
-                            ) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                                    contentDescription = "المشهد التالي",
-                                    tint = if (currentSceneIndex < scenes.size - 1) QabasGold else Color.White.copy(alpha = 0.2f)
-                                )
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(10.dp))
-
-                        // Timeline Segment Pills
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            scenes.forEachIndexed { index, sc ->
-                                Box(
-                                    modifier = Modifier
-                                        .weight(sc.durationSeconds.toFloat().coerceAtLeast(1f))
-                                        .height(6.dp)
-                                        .clip(RoundedCornerShape(3.dp))
-                                        .background(
-                                            if (index == currentSceneIndex) QabasGold else Color.White.copy(alpha = 0.2f)
-                                        )
-                                        .clickable { currentSceneIndex = index }
-                                )
-                            }
-                        }
+                    IconButton(
+                        onClick = { if (currentSceneIndex < scenes.size - 1) currentSceneIndex += 1 },
+                        enabled = currentSceneIndex < scenes.size - 1,
+                        modifier = Modifier.testTag("preview_next_button")
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                            contentDescription = "التالي",
+                            tint = if (currentSceneIndex < scenes.size - 1) QabasGold else Color.White.copy(alpha = 0.2f)
+                        )
                     }
                 }
 
-                // Main Navigation / Action Buttons
-                Button(
-                    onClick = { navController.navigate(Routes.STUDIO_EDITOR) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(52.dp)
-                        .padding(bottom = 10.dp)
-                        .testTag("preview_edit_scenes_button"),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = QabasGold, contentColor = QabasDarkBackground)
+                // الخط الزمني
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    Icon(imageVector = Icons.Default.Edit, contentDescription = null)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("تعديل المشاهد والموارد في المحرر", fontWeight = FontWeight.Bold)
+                    scenes.forEachIndexed { index, sc ->
+                        Box(
+                            modifier = Modifier
+                                .weight(sc.durationSeconds.toFloat().coerceAtLeast(1f))
+                                .height(5.dp)
+                                .clip(RoundedCornerShape(3.dp))
+                                .background(
+                                    if (index == currentSceneIndex) QabasGold else Color.White.copy(alpha = 0.18f)
+                                )
+                                .clickable { currentSceneIndex = index }
+                        )
+                    }
                 }
 
-                OutlinedButton(
+                // ===== أزرار الإجراء =====
+                QabasButton(
+                    text = "إعادة إنتاج الفيديو",
                     onClick = {
-                        viewModel.exportCurrentVideo()
+                        viewModel.renderVideoForPreview()
                         showExportDialog = true
                     },
+                    variant = QabasButtonVariant.PrimaryGold,
+                    icon = { Icon(Icons.Default.Download, contentDescription = null) },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(50.dp)
-                        .padding(bottom = 10.dp)
-                        .testTag("preview_export_button"),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = QabasGoldLight),
-                    border = ButtonDefaults.outlinedButtonBorder.copy(
-                        brush = Brush.linearGradient(listOf(QabasGoldDark, QabasGold))
-                    )
-                ) {
-                    Icon(imageVector = Icons.Default.Download, contentDescription = null)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("تصدير الفيديو (حالة التصدير)", fontWeight = FontWeight.Bold)
-                }
+                        .testTag("preview_export_button")
+                )
+
+                QabasButton(
+                    text = "تعديل المشاهد والموارد",
+                    onClick = { navController.navigate(Routes.STUDIO_EDITOR) },
+                    variant = QabasButtonVariant.SecondarySurface,
+                    icon = { Icon(Icons.Default.Edit, contentDescription = null) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("preview_edit_scenes_button")
+                )
             }
         }
 

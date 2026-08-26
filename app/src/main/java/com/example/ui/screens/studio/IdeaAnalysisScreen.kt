@@ -35,6 +35,7 @@ import com.example.ui.components.QabasButtonVariant
 import com.example.ui.components.QabasTopBar
 import com.example.ui.components.StarryBackground
 import com.example.ui.navigation.Routes
+import com.example.ui.screens.studio.components.StudioGlassCard
 import com.example.ui.theme.QabasDimens
 import com.example.ui.theme.QabasThemeTokens
 import com.example.ui.theme.StudioBlue
@@ -331,14 +332,11 @@ private fun AnalysisCard(
     icon: ImageVector,
     content: @Composable () -> Unit
 ) {
-    val colors = QabasThemeTokens.colors
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(QabasDimens.Radius12))
-            .background(colors.surfaceElevated)
-            .border(1.dp, colors.gold.copy(alpha = 0.15f), RoundedCornerShape(QabasDimens.Radius12))
-            .padding(QabasDimens.Space16)
+    StudioGlassCard(
+        modifier = Modifier.fillMaxWidth(),
+        gradientBorder = false,
+        cornerRadius = QabasDimens.Radius12,
+        contentPadding = PaddingValues(QabasDimens.Space16)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(

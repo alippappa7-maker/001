@@ -29,6 +29,7 @@ import com.example.ui.components.QabasButton
 import com.example.ui.components.QabasButtonVariant
 import com.example.ui.components.QabasTopBar
 import com.example.ui.components.StarryBackground
+import com.example.ui.screens.studio.components.StudioGlassCard
 import com.example.ui.theme.QabasDimens
 import com.example.ui.theme.QabasThemeTokens
 import com.example.ui.theme.StudioBlue
@@ -212,15 +213,13 @@ private fun StyleSignatureCard(
     showApplyButton: Boolean,
     onApply: () -> Unit
 ) {
-    val colors = QabasThemeTokens.colors
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(QabasDimens.Radius12))
-            .background(colors.surfaceElevated)
-            .border(1.dp, colors.gold.copy(alpha = 0.2f), RoundedCornerShape(QabasDimens.Radius12))
-            .padding(QabasDimens.Space16)
+    StudioGlassCard(
+        modifier = Modifier.fillMaxWidth(),
+        gradientBorder = true,
+        cornerRadius = QabasDimens.Radius12,
+        contentPadding = PaddingValues(QabasDimens.Space16)
     ) {
+        val colors = QabasThemeTokens.colors
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Default.CheckCircle, contentDescription = null, tint = Color(0xFF4CAF50), modifier = Modifier.size(18.dp))
             Spacer(modifier = Modifier.width(8.dp))

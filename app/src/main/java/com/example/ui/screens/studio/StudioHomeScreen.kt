@@ -41,6 +41,8 @@ import com.example.ui.components.QabasButtonVariant
 import com.example.ui.components.QabasTopBar
 import com.example.ui.components.StarryBackground
 import com.example.ui.navigation.Routes
+import com.example.ui.screens.studio.components.StudioStatusChip
+import com.example.ui.screens.studio.components.StudioTagPill
 import com.example.ui.theme.QabasDimens
 import com.example.ui.theme.QabasThemeTokens
 import com.example.ui.theme.StudioBlue
@@ -448,18 +450,10 @@ fun StudioProjectCard(
                     modifier = Modifier.weight(1f)
                 )
 
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(QabasDimens.Radius8))
-                        .background(statusColor.copy(alpha = 0.15f))
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
-                ) {
-                    Text(
-                        text = statusLabel,
-                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                        color = statusColor
-                    )
-                }
+                StudioStatusChip(
+                    label = statusLabel,
+                    color = statusColor
+                )
             }
 
             Spacer(modifier = Modifier.height(QabasDimens.Space8))
@@ -481,10 +475,10 @@ fun StudioProjectCard(
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                ProjectTag(text = "${project.idea.duration.seconds}ث")
-                ProjectTag(text = project.idea.orientation.aspectRatioText)
-                ProjectTag(text = project.idea.tone.titleAr)
-                ProjectTag(text = project.idea.editingStyle.titleAr)
+                StudioTagPill(text = "${project.idea.duration.seconds}ث")
+                StudioTagPill(text = project.idea.orientation.aspectRatioText)
+                StudioTagPill(text = project.idea.tone.titleAr)
+                StudioTagPill(text = project.idea.editingStyle.titleAr)
 
                 Spacer(modifier = Modifier.weight(1f))
 
@@ -572,23 +566,6 @@ fun StudioProjectCard(
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun ProjectTag(text: String) {
-    val colors = QabasThemeTokens.colors
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(QabasDimens.Radius4))
-            .background(colors.background.copy(alpha = 0.6f))
-            .padding(horizontal = 6.dp, vertical = 2.dp)
-    ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-            color = colors.textSecondary
-        )
     }
 }
 

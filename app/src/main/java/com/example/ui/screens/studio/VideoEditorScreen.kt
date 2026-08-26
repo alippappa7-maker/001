@@ -7,6 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -93,6 +94,8 @@ import com.example.domain.model.studio.LicensedAsset
 import com.example.domain.model.studio.VideoOrientation
 import com.example.domain.model.studio.VideoScene
 import com.example.ui.navigation.Routes
+import com.example.ui.screens.studio.components.StudioGlassCard
+import com.example.ui.screens.studio.components.studioBackgroundBrush
 import com.example.ui.theme.QabasDarkBackground
 import com.example.ui.theme.QabasGold
 import com.example.ui.theme.QabasGoldDark
@@ -189,11 +192,7 @@ fun VideoEditorScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(QabasSurfaceDarkElevated, QabasDarkBackground, Color(0xFF04060A))
-                        )
-                    )
+                    .background(studioBackgroundBrush())
                     .verticalScroll(rememberScrollState())
                     .padding(16.dp)
             ) {
@@ -205,17 +204,15 @@ fun VideoEditorScreen(
                     VideoOrientation.SQUARE -> 1f
                 }
 
-                Card(
+                StudioGlassCard(
                     modifier = Modifier
                         .fillMaxWidth(if (orientation == VideoOrientation.PORTRAIT) 0.85f else 1f)
                         .align(Alignment.CenterHorizontally)
                         .padding(bottom = 16.dp)
                         .testTag("editor_preview_card"),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF0F1524)),
-                    border = CardDefaults.outlinedCardBorder().copy(
-                        brush = Brush.linearGradient(listOf(QabasGold.copy(alpha = 0.5f), QabasGoldDark))
-                    )
+                    gradientBorder = true,
+                    cornerRadius = 20.dp,
+                    contentPadding = PaddingValues(0.dp)
                 ) {
                     Box(
                         modifier = Modifier
@@ -284,15 +281,16 @@ fun VideoEditorScreen(
                 }
 
                 // 2. Visual Timeline Bar
-                Card(
+                StudioGlassCard(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = 16.dp)
                         .testTag("editor_timeline_card"),
-                    shape = RoundedCornerShape(14.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF131B2D))
+                    gradientBorder = false,
+                    cornerRadius = 18.dp,
+                    contentPadding = PaddingValues(14.dp)
                 ) {
-                    Column(modifier = Modifier.padding(14.dp)) {
+                    Column {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,

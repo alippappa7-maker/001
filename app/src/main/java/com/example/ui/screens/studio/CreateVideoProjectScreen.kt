@@ -44,6 +44,8 @@ import com.example.ui.components.QabasButtonVariant
 import com.example.ui.components.QabasTopBar
 import com.example.ui.components.StarryBackground
 import com.example.ui.navigation.Routes
+import com.example.ui.screens.studio.components.StudioGlassCard
+import com.example.ui.screens.studio.components.StudioSectionHeader
 import com.example.ui.theme.QabasDimens
 import com.example.ui.theme.QabasThemeTokens
 import com.example.ui.theme.StudioBlue
@@ -372,29 +374,15 @@ private fun SectionCard(
     required: Boolean = false,
     content: @Composable () -> Unit
 ) {
-    val colors = QabasThemeTokens.colors
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(QabasDimens.Radius12))
-            .background(colors.surfaceElevated)
-            .border(1.dp, colors.gold.copy(alpha = 0.15f), RoundedCornerShape(QabasDimens.Radius12))
-            .padding(QabasDimens.Space16)
+    StudioGlassCard(
+        modifier = Modifier.fillMaxWidth(),
+        gradientBorder = false,
+        cornerRadius = QabasDimens.Radius16,
+        contentPadding = PaddingValues(QabasDimens.Space16)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                color = colors.gold
-            )
-            if (required) {
-                Text(
-                    text = " *",
-                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.error
-                )
-            }
-        }
+        StudioSectionHeader(
+            title = if (required) "$title *" else title
+        )
         Spacer(modifier = Modifier.height(QabasDimens.Space12))
         content()
     }

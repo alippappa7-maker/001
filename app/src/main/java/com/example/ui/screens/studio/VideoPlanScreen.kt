@@ -47,6 +47,7 @@ import com.example.ui.components.QabasButtonVariant
 import com.example.ui.components.QabasTopBar
 import com.example.ui.components.StarryBackground
 import com.example.ui.navigation.Routes
+import com.example.ui.screens.studio.components.StudioGlassCard
 import com.example.ui.theme.QabasDimens
 import com.example.ui.theme.QabasThemeTokens
 import com.example.ui.theme.StudioBlue
@@ -457,13 +458,11 @@ private fun ProjectTitleAndStatsCard(
 ) {
     val colors = QabasThemeTokens.colors
 
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(QabasDimens.Radius16))
-            .background(colors.surfaceElevated)
-            .border(1.dp, colors.gold.copy(alpha = 0.25f), RoundedCornerShape(QabasDimens.Radius16))
-            .padding(QabasDimens.Space16)
+    StudioGlassCard(
+        modifier = Modifier.fillMaxWidth(),
+        gradientBorder = true,
+        cornerRadius = QabasDimens.Radius16,
+        contentPadding = PaddingValues(QabasDimens.Space16)
     ) {
         Column {
             Row(
@@ -542,14 +541,13 @@ private fun DetailedSceneCard(
 ) {
     val colors = QabasThemeTokens.colors
 
-    Box(
+    StudioGlassCard(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(QabasDimens.Radius12))
-            .background(colors.surfaceElevated)
-            .border(1.dp, colors.gold.copy(alpha = 0.15f), RoundedCornerShape(QabasDimens.Radius12))
-            .padding(QabasDimens.Space16)
-            .testTag("card_scene_$sceneIndex")
+            .testTag("card_scene_$sceneIndex"),
+        gradientBorder = false,
+        cornerRadius = QabasDimens.Radius12,
+        contentPadding = PaddingValues(QabasDimens.Space16)
     ) {
         Column {
             // Header Row: Scene Number, Duration, and Reorder / Edit / Delete Controls

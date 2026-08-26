@@ -1,3 +1,5 @@
+@file:androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
+
 package com.example.ui.screens.studio
 
 import androidx.compose.animation.AnimatedContent
@@ -38,6 +40,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -49,6 +52,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -61,6 +65,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
@@ -68,6 +73,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
+import android.net.Uri
+import androidx.media3.common.MediaItem
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.ui.PlayerView
 import androidx.navigation.NavController
 import com.example.domain.model.studio.VideoOrientation
 import com.example.ui.navigation.Routes
@@ -77,6 +87,7 @@ import com.example.ui.theme.QabasGoldDark
 import com.example.ui.theme.QabasGoldLight
 import com.example.ui.theme.QabasSurfaceDarkElevated
 import kotlinx.coroutines.delay
+import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -87,11 +98,20 @@ fun VideoPreviewScreen(
 ) {
     val currentProject by viewModel.currentProject.collectAsState()
     val exportNotice by viewModel.exportNotice.collectAsState()
+    val renderState by viewModel.renderState.collectAsState()
 
     val scenes = currentProject?.plan?.scenes ?: emptyList()
     var currentSceneIndex by remember { mutableIntStateOf(0) }
     var isPlaying by remember { mutableStateOf(false) }
     var showExportDialog by remember { mutableStateOf(false) }
+
+    // تشغيل تلقائي للتصدير الحقيقي عند دخول المعاينة، ما لم يوحد ملف جاهز
+    // للمشروع الحالي بالفعل (يحميه renderVideoForPreview من التكرار).
+    LaunchedEffect(currentProject?.id, currentProject?.updatedAt) {
+        if (scenes.isNotEmpty()) {
+            viewModel.renderVideoForPreview()
+        }
+    }
 
     // Auto-advance scenes during interactive preview playback
     LaunchedEffect(isPlaying, currentSceneIndex, scenes.size) {
@@ -205,6 +225,77 @@ fun VideoPreviewScreen(
                             fontSize = 12.sp,
                             lineHeight = 16.sp
                         )
+                    }
+                }
+
+                // ===== بطاقة الفيديو الحقيقي (نتيجة محرك Media3) =====
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp)
+                        .testTag("rendered_video_card"),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF0B1220)),
+                    border = CardDefaults.outlinedCardBorder().copy(
+                        brush = Brush.linearGradient(listOf(QabasGold, QabasGoldDark))
+                    )
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(previewAspectRatio)
+                            .background(Color(0xFF05080F)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        when (val state = renderState) {
+                            is VideoRenderState.Ready -> {
+                                RenderedVideoPlayer(
+                                    path = state.path,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            }
+                            VideoRenderState.Rendering -> Column(
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                CircularProgressIndicator(color = QabasGold)
+                                Spacer(modifier = Modifier.height(12.dp))
+                                Text(
+                                    text = "جارٍ إنتاج الفيديو… محرك Media3 يرسم المشاهد الآن",
+                                    color = Color.White.copy(alpha = 0.85f),
+                                    fontSize = 13.sp,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                            is VideoRenderState.Error -> Column(
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Info,
+                                    contentDescription = null,
+                                    tint = QabasGold,
+                                    modifier = Modifier.size(28.dp)
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = state.message,
+                                    color = Color.White.copy(alpha = 0.85f),
+                                    fontSize = 13.sp,
+                                    textAlign = TextAlign.Center
+                                )
+                                Spacer(modifier = Modifier.height(12.dp))
+                                TextButton(onClick = { viewModel.renderVideoForPreview() }) {
+                                    Text("إعادة المحاولة", color = QabasGold)
+                                }
+                            }
+                            VideoRenderState.Idle -> {
+                                Text(
+                                    text = "اضغط «تصدير الفيديو» لإنتاج MP4 حقيقي",
+                                    color = Color.White.copy(alpha = 0.6f),
+                                    fontSize = 13.sp,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                        }
                     }
                 }
 
@@ -510,13 +601,13 @@ fun VideoPreviewScreen(
                 text = {
                     Column {
                         Text(
-                            text = exportNotice?.message ?: "التصدير جاهز: اضغط زر التصدير لإنتاج ملف MP4 محلي. يعمل بدون إنترنت وبدون مفاتيح API.",
+                            text = exportNotice?.message ?: "يُنتج الاستوديو ملف MP4 محلياً حقيقياً عبر محرك Media3 ويعرضه أعلاه. يعمل بدون إنترنت.",
                             color = Color.White,
                             fontSize = 14.sp
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = exportNotice?.notice ?: "يمكنك حاليًا استعراض وتعديل لوحة القصة، وإدارة الموارد المرخصة عبر المسار الاحتياطي.",
+                            text = exportNotice?.notice ?: "يمكنك إعادة الإنتاج بعد تعديل المشاهد، أو مشاركة الفيديو الناتج لاحقاً.",
                             color = Color.White.copy(alpha = 0.7f),
                             fontSize = 12.sp
                         )
@@ -537,4 +628,40 @@ fun VideoPreviewScreen(
             )
         }
     }
+}
+
+/**
+ * مشغّل فيديو حقيقي يعتمد على ExoPlayer (Media3) — يقرأ ملف MP4 الذي أنتجه
+ * محرك التصدير ويشغّله داخل التطبيق. لا محاكاة: ملف حقيقي من filesDir.
+ */
+@Composable
+fun RenderedVideoPlayer(
+    path: String,
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+    val player = remember { ExoPlayer.Builder(context).build() }
+
+    DisposableEffect(Unit) {
+        onDispose { player.release() }
+    }
+
+    LaunchedEffect(path) {
+        if (path.isNotBlank()) {
+            player.setMediaItem(MediaItem.fromUri(Uri.fromFile(File(path))))
+            player.prepare()
+            player.playWhenReady = true
+        }
+    }
+
+    AndroidView(
+        modifier = modifier,
+        factory = { ctx ->
+            PlayerView(ctx).apply {
+                this.player = player
+                useController = true
+            }
+        },
+        update = { it.player = player }
+    )
 }

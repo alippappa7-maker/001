@@ -14,9 +14,11 @@ import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.lifecycle.ViewModelProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.navigation
 import com.example.ui.screens.*
 import com.example.ui.screens.studio.*
 
@@ -33,6 +35,7 @@ object Routes {
     const val STUDIO_PREVIEW = "studio_preview"
     const val STUDIO_EDITOR = "studio_editor"
     const val STUDIO_STYLE_REFERENCE = "studio_style_reference"
+    const val STUDIO_GRAPH = "studio_graph"
     const val COMPANION = "companion"
     const val KNOWLEDGE = "knowledge"
     const val IMPACT = "impact"
@@ -45,9 +48,12 @@ object Routes {
 
 
 @Composable
-private fun rememberStudioViewModel(): StudioViewModel {
-    val owner = checkNotNull(LocalViewModelStoreOwner.current) {
-        "A ViewModelStoreOwner is required for StudioViewModel"
+private fun rememberStudioViewModel(navController: NavController): StudioViewModel {
+    // نحدّد scope الـ ViewModel إلى مدخل الرسم البياني الأب المشترك (STUDIO_GRAPH)
+    // بدل مدخل الوجهة نفسها، حتى تتشارك كل شاشات الاستوديو نسخة ViewModel
+    // واحدة (وإلا فُقد currentProject وحالة التصدير عند التنقل بين الشاشات).
+    val parentEntry = remember(navController) {
+        navController.getBackStackEntry(Routes.STUDIO_GRAPH)
     }
     val application = LocalContext.current.applicationContext as android.app.Application
 
@@ -57,9 +63,9 @@ private fun rememberStudioViewModel(): StudioViewModel {
     // AndroidViewModelFactory relies on reflection to find that constructor and
     // fails with NoSuchMethodException, crashing the app. We provide an explicit
     // factory instead so the defaults are applied normally in Kotlin code.
-    return remember(owner, application) {
+    return remember(parentEntry, application) {
         ViewModelProvider(
-            owner,
+            parentEntry,
             object : ViewModelProvider.Factory {
                 override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
                     @Suppress("UNCHECKED_CAST")
@@ -224,70 +230,72 @@ fun AppNavigation(
             )
         }
 
-        composable(Routes.STUDIO) {
-            val studioViewModel = rememberStudioViewModel()
-            StudioHomeScreen(
-                navController = navController,
-                onBack = { navController.popBackStack() },
-                viewModel = studioViewModel
-            )
-        }
-        composable(Routes.STUDIO_CREATE) {
-            val studioViewModel = rememberStudioViewModel()
-            CreateVideoProjectScreen(
-                navController = navController,
-                onBack = { navController.popBackStack() },
-                viewModel = studioViewModel
-            )
-        }
-        composable(Routes.STUDIO_ANALYSIS) {
-            val studioViewModel = rememberStudioViewModel()
-            IdeaAnalysisScreen(
-                navController = navController,
-                onBack = { navController.popBackStack() },
-                viewModel = studioViewModel
-            )
-        }
-        composable(Routes.STUDIO_PLAN) {
-            val studioViewModel = rememberStudioViewModel()
-            VideoPlanScreen(
-                navController = navController,
-                onBack = { navController.popBackStack() },
-                viewModel = studioViewModel
-            )
-        }
-        composable(Routes.STUDIO_STATUS) {
-            val studioViewModel = rememberStudioViewModel()
-            GenerationStatusScreen(
-                navController = navController,
-                onBack = { navController.popBackStack() },
-                viewModel = studioViewModel
-            )
-        }
-        composable(Routes.STUDIO_PREVIEW) {
-            val studioViewModel = rememberStudioViewModel()
-            VideoPreviewScreen(
-                navController = navController,
-                onBack = { navController.popBackStack() },
-                viewModel = studioViewModel
-            )
-        }
-        composable(Routes.STUDIO_EDITOR) {
-            val studioViewModel = rememberStudioViewModel()
-            VideoEditorScreen(
-                navController = navController,
-                onBack = { navController.popBackStack() },
-                viewModel = studioViewModel
-            )
-        }
+        navigation(startDestination = Routes.STUDIO, route = Routes.STUDIO_GRAPH) {
+            composable(Routes.STUDIO) {
+                val studioViewModel = rememberStudioViewModel(navController)
+                StudioHomeScreen(
+                    navController = navController,
+                    onBack = { navController.popBackStack() },
+                    viewModel = studioViewModel
+                )
+            }
+            composable(Routes.STUDIO_CREATE) {
+                val studioViewModel = rememberStudioViewModel(navController)
+                CreateVideoProjectScreen(
+                    navController = navController,
+                    onBack = { navController.popBackStack() },
+                    viewModel = studioViewModel
+                )
+            }
+            composable(Routes.STUDIO_ANALYSIS) {
+                val studioViewModel = rememberStudioViewModel(navController)
+                IdeaAnalysisScreen(
+                    navController = navController,
+                    onBack = { navController.popBackStack() },
+                    viewModel = studioViewModel
+                )
+            }
+            composable(Routes.STUDIO_PLAN) {
+                val studioViewModel = rememberStudioViewModel(navController)
+                VideoPlanScreen(
+                    navController = navController,
+                    onBack = { navController.popBackStack() },
+                    viewModel = studioViewModel
+                )
+            }
+            composable(Routes.STUDIO_STATUS) {
+                val studioViewModel = rememberStudioViewModel(navController)
+                GenerationStatusScreen(
+                    navController = navController,
+                    onBack = { navController.popBackStack() },
+                    viewModel = studioViewModel
+                )
+            }
+            composable(Routes.STUDIO_PREVIEW) {
+                val studioViewModel = rememberStudioViewModel(navController)
+                VideoPreviewScreen(
+                    navController = navController,
+                    onBack = { navController.popBackStack() },
+                    viewModel = studioViewModel
+                )
+            }
+            composable(Routes.STUDIO_EDITOR) {
+                val studioViewModel = rememberStudioViewModel(navController)
+                VideoEditorScreen(
+                    navController = navController,
+                    onBack = { navController.popBackStack() },
+                    viewModel = studioViewModel
+                )
+            }
 
-        composable(Routes.STUDIO_STYLE_REFERENCE) {
-            val studioViewModel = rememberStudioViewModel()
-            com.example.ui.screens.studio.StyleReferenceScreen(
-                navController = navController,
-                onBack = { navController.popBackStack() },
-                viewModel = studioViewModel
-            )
+            composable(Routes.STUDIO_STYLE_REFERENCE) {
+                val studioViewModel = rememberStudioViewModel(navController)
+                com.example.ui.screens.studio.StyleReferenceScreen(
+                    navController = navController,
+                    onBack = { navController.popBackStack() },
+                    viewModel = studioViewModel
+                )
+            }
         }
 
 

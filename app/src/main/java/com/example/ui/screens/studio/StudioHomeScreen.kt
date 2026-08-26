@@ -173,7 +173,7 @@ fun StudioHomeScreen(
                                     VideoStatus.DRAFT -> navController.navigate(Routes.STUDIO_CREATE)
                                     VideoStatus.ANALYZING -> navController.navigate(Routes.STUDIO_ANALYSIS)
                                     VideoStatus.PLANNING -> navController.navigate(Routes.STUDIO_PLAN)
-                                    VideoStatus.GENERATING -> navController.navigate(Routes.STUDIO_STATUS)
+                                    VideoStatus.GENERATING -> navController.navigate(Routes.STUDIO_PREVIEW)
                                     VideoStatus.COMPLETED -> navController.navigate(Routes.STUDIO_PREVIEW)
                                     else -> navController.navigate(Routes.STUDIO_PLAN)
                                 }

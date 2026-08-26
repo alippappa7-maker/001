@@ -43,6 +43,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.io.File
 import java.util.UUID
 
 enum class StudioFilter {
@@ -57,6 +58,22 @@ sealed class StyleAnalysisUiState {
     object Analyzing : StyleAnalysisUiState()
     data class Success(val signature: StyleSignature) : StyleAnalysisUiState()
     data class Error(val message: String) : StyleAnalysisUiState()
+}
+
+/**
+ * حالة التصدير الحقيقي للفيديو عبر محرك Media3. تتشاركها كل شاشات الاستوديو
+ * لأن الـ ViewModel محصور على مدخل الرسم البياني الأب (STUDIO_GRAPH).
+ *
+ * - Idle: لم يبدأ التصدير بعد.
+ * - Rendering: جارٍ إنتاج ملف MP4.
+ * - Ready: اكتمل التصدير؛ [path] هو مسار الملف المحلي الصالح للّعب.
+ * - Error: فشل التصدير مع رسالة.
+ */
+sealed class VideoRenderState {
+    object Idle : VideoRenderState()
+    object Rendering : VideoRenderState()
+    data class Ready(val projectId: String, val projectUpdatedAt: Long, val path: String) : VideoRenderState()
+    data class Error(val message: String) : VideoRenderState()
 }
 
 class StudioViewModel @JvmOverloads constructor(
@@ -106,6 +123,9 @@ class StudioViewModel @JvmOverloads constructor(
 
     private val _exportNotice = MutableStateFlow<VideoExportResult?>(null)
     val exportNotice: StateFlow<VideoExportResult?> = _exportNotice.asStateFlow()
+
+    private val _renderState = MutableStateFlow<VideoRenderState>(VideoRenderState.Idle)
+    val renderState: StateFlow<VideoRenderState> = _renderState.asStateFlow()
 
     private var activeJobObservation: Job? = null
 
@@ -544,21 +564,8 @@ class StudioViewModel @JvmOverloads constructor(
     // --- Generation Lifecycle, Cancellation & Retry ---
 
     fun startGeneratingVideo() {
-        val project = _currentProject.value ?: return
-        viewModelScope.launch {
-            val job = generationService.generateFromPlan(project.plan, project.id)
-            val updated = project.copy(
-                status = VideoStatus.GENERATING,
-                renderStatus = VideoRenderStatus.PROCESSING,
-                generationStage = job.stage,
-                currentJob = job,
-                errorMessage = null,
-                updatedAt = System.currentTimeMillis()
-            )
-            _currentProject.value = updated
-            repository.saveProject(updated)
-            observeGenerationJob(job.jobId)
-        }
+        // محاكاة التوليد السابقة لم تعد مستخدمة — نجّب التصدير الحقيقي مباشرة.
+        renderVideoForPreview()
     }
 
     private fun observeGenerationJob(jobId: String) {
@@ -588,41 +595,26 @@ class StudioViewModel @JvmOverloads constructor(
     }
 
     fun cancelActiveGeneration() {
+        // لا يوجد "توليد وهمي" لإلغائه بعد الآن. نعيد المشروع لحالة "التخطيط"
+        // ونسمح للمستخدم بإعادة المحاولة لاحقاً.
         val current = _currentProject.value ?: return
-        val jobId = current.currentJob?.jobId ?: return
         viewModelScope.launch {
-            generationService.cancelGeneration(jobId)
             val updated = current.copy(
-                status = VideoStatus.CANCELLED,
-                renderStatus = VideoRenderStatus.CANCELLED,
-                generationStage = GenerationStage.CANCELLED,
-                errorMessage = "تم إلغاء عملية التوليد بناءً على طلبك.",
-                updatedAt = System.currentTimeMillis()
-            )
-            _currentProject.value = updated
-            repository.saveProject(updated)
-            _feedbackMessage.value = "تم إلغاء عملية التوليد"
-        }
-    }
-
-    fun retryActiveGeneration() {
-        val current = _currentProject.value ?: return
-        val oldJobId = current.currentJob?.jobId ?: UUID.randomUUID().toString()
-        viewModelScope.launch {
-            val newJob = generationService.retryGeneration(oldJobId, current)
-            val updated = current.copy(
-                status = VideoStatus.GENERATING,
-                renderStatus = VideoRenderStatus.PROCESSING,
-                generationStage = newJob.stage,
-                currentJob = newJob,
+                status = VideoStatus.PLANNING,
                 errorMessage = null,
                 updatedAt = System.currentTimeMillis()
             )
             _currentProject.value = updated
             repository.saveProject(updated)
-            observeGenerationJob(newJob.jobId)
-            _feedbackMessage.value = "بدأت إعادة محاولة التوليد (محاكاة)"
+            _renderState.value = VideoRenderState.Idle
+            _feedbackMessage.value = "تم إيقاف المحاولة. يمكنك إعادة الإنتاج لاحقاً."
         }
+    }
+
+    fun retryActiveGeneration() {
+        // إعادة المحاولة تعني: تشغيل التصدير الحقيقي مرة أخرى بدل التوليد الوهمي.
+        resetRenderState()
+        renderVideoForPreview()
     }
 
     // --- Fallback Resource Mode & Asset Validation ---
@@ -769,12 +761,94 @@ class StudioViewModel @JvmOverloads constructor(
         }
     }
 
-    fun exportCurrentVideo() {
+    /**
+     * التصدير الحقيقي للفيديو: يستدعي محرك Media3 الذي ينتج ملف MP4 محلياً
+     * (نصوص عربية مرسومة كـ BitmapOverlays فوق الخلفيات). لا محاكاة — نتيجة حقيقية.
+     * يحدّث [renderState] لتشغيلها لاحقاً في شاشة المعاينة عبر ExoPlayer.
+     */
+    fun renderVideoForPreview() {
         val current = _currentProject.value ?: return
+
+        // منع التكرار: إن كان جارٍ التصدير فلا شيء.
+        if (_renderState.value is VideoRenderState.Rendering) return
+
+        // إعادة استخدام النتيجة إن لم يتغيّر المشروع وكان الملف لا يزال موجوداً.
+        val existing = _renderState.value
+        if (existing is VideoRenderState.Ready &&
+            existing.projectId == current.id &&
+            existing.projectUpdatedAt == current.updatedAt &&
+            File(existing.path).exists()
+        ) return
+
+        _renderState.value = VideoRenderState.Rendering
+        _exportNotice.value = null
+
+        // تحديث حالة المشروع في قاعدة البيانات قبل التصدير حتى لا يبقى المشروع
+        // عالقاً في حالة قديمة في قائمة المشاريع.
+        val generatingProject = current.copy(
+            status = VideoStatus.GENERATING,
+            errorMessage = null,
+            updatedAt = System.currentTimeMillis()
+        )
+        _currentProject.value = generatingProject
+
         viewModelScope.launch {
-            val result = renderService.exportVideo(current)
+            repository.saveProject(generatingProject)
+
+            val result = try {
+                renderService.exportVideo(generatingProject)
+            } catch (t: Throwable) {
+                _exportNotice.value = null
+                _renderState.value = VideoRenderState.Error(
+                    t.message ?: "تعذّر إنتاج الفيديو بسبب خلل داخلي"
+                )
+                val failed = generatingProject.copy(
+                    status = VideoStatus.FAILED,
+                    errorMessage = t.message,
+                    updatedAt = System.currentTimeMillis()
+                )
+                _currentProject.value = failed
+                repository.saveProject(failed)
+                return@launch
+            }
+
             _exportNotice.value = result
+            val path = result.exportPath
+            val file = path?.let { File(it) }
+
+            if (result.isAvailable && file != null && file.exists() && file.length() > 0L) {
+                val completed = generatingProject.copy(
+                    status = VideoStatus.COMPLETED,
+                    errorMessage = null,
+                    updatedAt = System.currentTimeMillis()
+                )
+                _currentProject.value = completed
+                repository.saveProject(completed)
+                _renderState.value = VideoRenderState.Ready(
+                    projectId = completed.id,
+                    projectUpdatedAt = completed.updatedAt,
+                    path = file.absolutePath
+                )
+            } else {
+                val failMessage = result.message.ifBlank { "تعذّر إنتاج الفيديو" }
+                val failed = generatingProject.copy(
+                    status = VideoStatus.FAILED,
+                    errorMessage = failMessage,
+                    updatedAt = System.currentTimeMillis()
+                )
+                _currentProject.value = failed
+                repository.saveProject(failed)
+                _renderState.value = VideoRenderState.Error(failMessage)
+            }
         }
+    }
+
+    fun resetRenderState() {
+        _renderState.value = VideoRenderState.Idle
+    }
+
+    fun exportCurrentVideo() {
+        renderVideoForPreview()
     }
 
     // --- Style Reference Analysis (تحليل فيديو مرجعي واستخراج بصمة أسلوبه) ---

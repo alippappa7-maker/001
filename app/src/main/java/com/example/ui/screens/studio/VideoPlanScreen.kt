@@ -150,8 +150,8 @@ fun VideoPlanScreen(
                     QabasButton(
                         text = stringResource(R.string.studio_btn_start_creation),
                         onClick = {
-                            viewModel.startGeneratingVideo()
-                            navController.navigate(Routes.STUDIO_STATUS)
+                            viewModel.renderVideoForPreview()
+                            navController.navigate(Routes.STUDIO_PREVIEW)
                         },
                         variant = QabasButtonVariant.PrimaryGold,
                         modifier = Modifier

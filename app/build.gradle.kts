@@ -114,6 +114,9 @@ dependencies {
   implementation(libs.androidx.media3.transformer)
   implementation(libs.androidx.media3.effect)
   implementation(libs.androidx.media3.common)
+  // Media3 ExoPlayer + PlayerView: لتشغيل الفيديو المُصدَّر داخل شاشة المعاينة
+  implementation(libs.androidx.media3.exoplayer)
+  implementation(libs.androidx.media3.ui)
 
   testImplementation(libs.androidx.compose.ui.test.junit4)
   testImplementation(libs.androidx.core)

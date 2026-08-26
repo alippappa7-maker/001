@@ -26,7 +26,9 @@ import com.example.domain.model.studio.CompositionScene
 import com.example.domain.model.studio.CompositionStoryboard
 import com.example.domain.model.studio.LayerHorizontalAlignment
 import com.example.domain.model.studio.LayerVerticalAlignment
+import com.example.domain.model.studio.TextAnimation
 import com.example.domain.service.studio.template.AnimatedTextOverlay
+import com.example.domain.service.studio.template.KineticTextOverlay
 import com.example.domain.model.studio.TextLayer
 import kotlinx.coroutines.suspendCancellableCoroutine
 import java.io.File
@@ -170,16 +172,20 @@ class StudioCompositionEngine(
         storyboard: CompositionStoryboard
     ): List<BitmapOverlay> {
         val textOverlays = scene.textLayers.map { layer ->
-            val bitmap = textRenderer.render(layer, storyboard.width, storyboard.height)
-            val (ax, ay) = computeAnchor(layer.alignment, layer.verticalAnchor, layer.yOffsetPercent)
-            AnimatedTextOverlay(
-                bitmap = bitmap,
-                baseAnchorX = ax,
-                baseAnchorY = ay,
-                animation = layer.animation,
-                animStartMs = layer.animationStartMs,
-                animDurationMs = layer.animationDurationMs
-            )
+            if (layer.animation == TextAnimation.WORD_BY_WORD) {
+                buildKineticTextOverlay(layer, storyboard, scene)
+            } else {
+                val bitmap = textRenderer.render(layer, storyboard.width, storyboard.height)
+                val (ax, ay) = computeAnchor(layer.alignment, layer.verticalAnchor, layer.yOffsetPercent)
+                AnimatedTextOverlay(
+                    bitmap = bitmap,
+                    baseAnchorX = ax,
+                    baseAnchorY = ay,
+                    animation = layer.animation,
+                    animStartMs = layer.animationStartMs,
+                    animDurationMs = layer.animationDurationMs
+                )
+            }
         }
         val imageOverlays = scene.overlayLayers.map { layer ->
             val (ax, ay) = computeAnchor(layer.alignment, layer.verticalAnchor, layer.yOffsetPercent)
@@ -195,6 +201,47 @@ class StudioCompositionEngine(
         // الإطار الزخرفي (صورة) أولاً ثم النص فوقه ثم الـ overlay الديناميكي فوق الكل.
         return imageOverlays + textOverlays + dynamicOverlays
     }
+
+    /**
+     * يبني [KineticTextOverlay] لطبقة نص بحركة [TextAnimation.WORD_BY_WORD]:
+     * يقسم النص إلى كلمات (بالمسافات فقط، لا بالأحرف) للحفاظ على التشكيل العربي،
+     * ثم يحسب الفترة الزمنية لكل كلمة بشكل يناسب مدة المشهد بحيث يكتمل الكشف قبل
+     * نهاية المشهد. في حالة النص القصير جدًا أو الجملة واحدة، يرتد إلى الطبقة
+     * الثابتة التقليدية (AnimatedTextOverlay) لتفادي رص Bitmapات فارغة.
+     */
+    private fun buildKineticTextOverlay(
+        layer: TextLayer,
+        storyboard: CompositionStoryboard,
+        scene: CompositionScene
+    ): BitmapOverlay {
+        val words = layer.text.split(Regex("\\s+"))
+            .filter { it.isNotBlank() }
+            .ifEmpty { listOf(layer.text.ifBlank { "" }) }
+        val (ax, ay) = computeAnchor(layer.alignment, layer.verticalAnchor, layer.yOffsetPercent)
+        // مدة المشهد المتاحة للكشف: من بداية الكشف حتى نهاية المشهد مع هامش للأمان.
+        val availableForReveal = (scene.durationMs - layer.animationStartMs)
+            .coerceAtLeast(layer.animationDurationMs)
+        val perWordMs = (availableForReveal / words.size.coerceAtLeast(1))
+            .coerceIn(MIN_WORD_MS, MAX_WORD_MS)
+        return KineticTextOverlay(
+            words = words,
+            renderer = textRenderer,
+            videoWidth = storyboard.width,
+            videoHeight = storyboard.height,
+            fontSizeSp = layer.fontSizeSp,
+            colorArgb = layer.textColorArgb,
+            startMs = layer.animationStartMs,
+            wordStaggerMs = perWordMs,
+            baseAnchorX = ax,
+            baseAnchorY = ay
+        )
+    }
+
+    private companion object {
+        const val MIN_WORD_MS = 180L
+        const val MAX_WORD_MS = 900L
+    }
+
 
     /**
      * يحوّل المحاذاة إلى إحداثيات إرساء نسبية [−1,1].

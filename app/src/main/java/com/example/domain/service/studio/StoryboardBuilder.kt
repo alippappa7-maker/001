@@ -83,7 +83,7 @@ class StoryboardBuilder {
                         glow = style == EditingStyle.MOVING_QUOTES,
                         alignment = LayerHorizontalAlignment.CENTER,
                         verticalAnchor = LayerVerticalAlignment.CENTER,
-                        animation = TextAnimation.FADE_IN,
+                        animation = TextAnimation.WORD_BY_WORD,
                         animationStartMs = 150L
                     )
                 )

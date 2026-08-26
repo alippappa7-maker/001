@@ -179,6 +179,93 @@ class TextBitmapRenderer(private val context: Context) {
     }
 
     /**
+     * يرسم النص في حالة "كشف كلمة بكلمة" لـ [KineticTextOverlay]:
+     * يبني العبارة كاملة (بكل كلماتها) كي يبقى التخطيط والتفاف الأسطر ثابتًا عبر
+     * كل الإطارات (لا قفز في الموضع)، ثم يطبّق شفافية على الكلمات غير المكشوفة.
+     *
+     * - الكلمات ذات الفهرس < [revealingWordIndex]: مرئية بالكامل (ألفا 255).
+     * - الكلمة رقم [revealingWordIndex]: شفافيتها = [revealProgress] (0..1).
+     * - الكلمات بعدها: شفافة تمامًا (ألفا 0) — مخفية لكنها تحجز مكانها.
+     *
+     * التقسيم يتم بالمسافات (لا بالأحرف) في [KineticTextOverlay]، ما يحفظ تشكيل
+     * الكلمات العربية ملتصقًا بكلمته. لا يُرسم توهج هنا للحفاظ على حدة النص
+     * المطابق للنمط الحركي المرجعي.
+     *
+     * @param words نصوص الكلمات بالترتيب.
+     * @param revealingWordIndex فهرس الكلمة قيد الكشف (0-based)، أو [words].size
+     *        لترميز "كل الكلمات مكشوفة".
+     * @param revealProgress تقدّم كشف الكلمة الحالية في النطاق [0,1].
+     * @param videoWidth عرض الفيديو.
+     * @param videoHeight ارتفاع الفيديو.
+     * @param fontSizeSp حجم الخط.
+     * @param colorArgb لون النص (أبيض افتراضيًا).
+     */
+    fun renderWordReveal(
+        words: List<String>,
+        revealingWordIndex: Int,
+        revealProgress: Float,
+        videoWidth: Int,
+        videoHeight: Int,
+        fontSizeSp: Int = 44,
+        colorArgb: Int = 0xFFFFFFFF.toInt()
+    ): Bitmap {
+        val density = context.resources.displayMetrics.density
+        val textSizePx = (fontSizeSp * density).roundToInt().toFloat()
+
+        val textPaint = TextPaint(Paint.ANTI_ALIAS_FLAG or Paint.SUBPIXEL_TEXT_FLAG).apply {
+            color = colorArgb
+            textSize = textSizePx
+            typeface = defaultTypeface
+            textAlign = Paint.Align.CENTER
+        }
+
+        val maxTextWidthPx = (videoWidth * 0.84f).roundToInt().coerceAtLeast(1)
+
+        val spannable = SpannableStringBuilder()
+        for (i in words.indices) {
+            if (i > 0) spannable.append(" ")
+            val start = spannable.length
+            spannable.append(words[i])
+            val end = spannable.length
+            val alpha: Int = when {
+                i < revealingWordIndex -> 255
+                i == revealingWordIndex -> (255 * revealProgress.coerceIn(0f, 1f)).toInt()
+                else -> 0
+            }
+            val colorWithAlpha = (alpha shl 24) or (colorArgb and 0x00FFFFFF)
+            spannable.setSpan(
+                ForegroundColorSpan(colorWithAlpha),
+                start,
+                end,
+                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+        }
+
+        val layout = StaticLayout.Builder.obtain(
+            spannable, 0, spannable.length, textPaint, maxTextWidthPx
+        )
+            .setAlignment(Layout.Alignment.ALIGN_CENTER)
+            .setIncludePad(true)
+            .setLineSpacing(0f, 1.1f)
+            .build()
+
+        val bitmapWidth = layout.width.coerceAtLeast(1)
+        val bitmapHeight = layout.height.coerceAtLeast(1)
+
+        val bitmap = Bitmap.createBitmap(bitmapWidth, bitmapHeight, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        canvas.drawColor(0, PorterDuff.Mode.CLEAR)
+
+        // ظل خفيف خلف النص لزيادة الوضوح فوق الخلفيات المتنوعة.
+        textPaint.setShadowLayer(
+            textSizePx * 0.12f, 0f, textSizePx * 0.08f, 0x80000000.toInt()
+        )
+        layout.draw(canvas)
+
+        return bitmap
+    }
+
+    /**
      * يرسم الآية بتظليل متعدد الطبقات وفق [WordVisualState] — جوهر "وضع قبس الذكي":
      * الكلمة النشطة ذهبية مع توهّج، وبقية كلمات العبارة الحالية أوضح، وما خارجها
      * أخفّ بصريًا. يُستخدم من [SmartAyahOverlay] لتوليد Bitmap لكل حالة نشطة

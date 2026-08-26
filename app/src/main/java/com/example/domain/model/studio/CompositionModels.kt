@@ -25,7 +25,8 @@ enum class TextAnimation(val durationMs: Long) {
     FADE_IN(800),
     SLIDE_UP(700),
     GLOW_PULSE(1200),
-    TYPEWRITER(0); // المدة تُحسب من طول النص في البناء
+    TYPEWRITER(0), // المدة تُحسب من طول النص في البناء
+    WORD_BY_WORD(2400); // كشف النص كلمة بكلمة (مدة الكشف الكلية الافتراضية)
 
     val arLabel: String
         get() = when (this) {
@@ -34,6 +35,7 @@ enum class TextAnimation(val durationMs: Long) {
             SLIDE_UP -> "صعود من الأسفل"
             GLOW_PULSE -> "توهج نابض"
             TYPEWRITER -> "كتابة حرفية"
+            WORD_BY_WORD -> "كشف كلمة بكلمة"
         }
 }
 

@@ -31,6 +31,7 @@ object TextAnimationMath {
             TextAnimation.FADE_IN -> Frame(fadeAlpha(presentationTimeMs, startMs, dur), 0f)
             TextAnimation.SLIDE_UP -> Frame(1f, slideYOffset(presentationTimeMs, startMs, dur))
             TextAnimation.GLOW_PULSE -> Frame(glowPulse(presentationTimeMs, startMs), 0f)
+            TextAnimation.WORD_BY_WORD -> Frame(1f, 0f) // الكشف يحدث داخل [KineticTextOverlay]
             // TYPEWRITER غير مدعوم فعليًا (تقطيع النص العربي يكسر التشكيل) — يُعامل كتلاشٍ تدريجي.
             TextAnimation.TYPEWRITER -> Frame(fadeAlpha(presentationTimeMs, startMs, dur), 0f)
         }

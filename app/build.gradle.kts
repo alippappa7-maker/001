@@ -14,7 +14,7 @@ android {
   compileSdk { version = release(36) { minorApiLevel = 1 } }
 
   defaultConfig {
-    applicationId = "com.aistudio.qabas.xmnpq"
+    applicationId = "com.qabas.app"
     minSdk = 24
     targetSdk = 36
     versionCode = 1
@@ -24,6 +24,12 @@ android {
   }
 
   signingConfigs {
+    create("debugConfig") {
+      storeFile = file("${rootDir}/debug.keystore")
+      storePassword = "android"
+      keyAlias = "androiddebugkey"
+      keyPassword = "android"
+    }
     create("release") {
       val keystorePath = System.getenv("KEYSTORE_PATH") ?: "${rootDir}/my-upload-key.jks"
       storeFile = file(keystorePath)
@@ -34,6 +40,9 @@ android {
   }
 
   buildTypes {
+    debug {
+      signingConfig = signingConfigs.getByName("debugConfig")
+    }
     release {
       isCrunchPngs = false
       isMinifyEnabled = false
